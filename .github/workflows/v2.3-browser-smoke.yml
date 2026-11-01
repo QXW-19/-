@@ -1,0 +1,38 @@
+name: V2.3 教材课堂验收
+on:
+  push:
+    branches:
+      - feature/digital-course-v2.3
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  regressions-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser-test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium and OS libraries
+        run: npx playwright install --with-deps chromium
+      - name: Previous-version regressions
+        run: npm run test:legacy
+      - name: V2.3 source integrity
+        run: npm run test:structure
+      - name: Real Chromium browser smoke tests
+        run: npm run test:browser
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-v2.3-debug
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
