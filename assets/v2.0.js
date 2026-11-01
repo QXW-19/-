@@ -47,7 +47,7 @@ function launch(kind,c,lessonId){
  return success;
 }
 function selectChapter(c){
- hub.currentChapter=c;persist();renderChapters();
+ hub.currentChapter=c;persist();renderChapters();renderShortcuts();
 }
 function refresh(){
  view=C.gather(localStorage);hub=view.hub;render();expandOld(hub.navExpanded);
