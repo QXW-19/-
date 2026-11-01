@@ -129,4 +129,10 @@ test('旧版新加的章节定位桥接都存在',()=>{
   assert.ok(fs.readFileSync(path.join(root,p),'utf8').includes('Navigation=Object.freeze'));
  }
 });
+test('新增 index.html 可直接进入课堂且保留深链接',()=>{
+ const page=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ assert.ok(page.includes('window.location.replace'));
+ assert.ok(page.includes('window.location.hash'));
+ assert.ok(page.includes('数字电子技术基础-互动课堂.html'));
+});
 console.log('全部 '+passed+' 项 V2.0 数据与集成检查通过。真实浏览器 UI 仍需本地验收。');
