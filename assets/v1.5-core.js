@@ -82,7 +82,7 @@ function fresh(){return {version:1,active:null,history:[],mistakes:{}};}
 function validAnswer(q,value){if(value===null||value===undefined)return false;return gradeQuestion(q,value).attempted;}
 function safeState(bank,data){
   validateBank(bank);const clean=fresh(),byId=new Map(bank.questions.map(q=>[q.id,q]));
-  if(!data||typeof data!=='object'||data.version!==1)throw Error('记录版本不正确');
+  if(!data||typeof data!=='object'||data.version!==1||!Array.isArray(data.history)||!data.mistakes||typeof data.mistakes!=='object'||Array.isArray(data.mistakes)||!Object.prototype.hasOwnProperty.call(data,'active'))throw Error('文件不符合 V1.5 成绩记录格式');
   if(data.mistakes&&typeof data.mistakes==='object'&&!Array.isArray(data.mistakes)){
     for(const [id,value]of Object.entries(data.mistakes)){
       if(!byId.has(id))continue;
@@ -115,7 +115,7 @@ function record(bank,state,paper,answers,completedAt){
   const mistakes={...prior.mistakes};
   for(const row of result.items){
     const former=mistakes[row.id];
-    if(!row.correct&&row.attempted){
+    if(!row.correct){
       mistakes[row.id]={errors:Math.min(1e5,(former?.errors||0)+1),corrected:false};
     }else if(row.correct&&former){mistakes[row.id]={errors:former.errors,corrected:true};}
   }
