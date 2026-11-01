@@ -235,6 +235,11 @@ function init(){
  feedback=el('p','提示：先按“下一步”读懂四步，再做三道分层题。','v19-status');
  feedback.setAttribute('role','status');host.append(feedback);main.append(host);
  render();
+ // V2.0 学习中心可直接定位某章图解与分层练习。
+ window.DigitalV19Navigation=Object.freeze({openChapter(ch){
+  if(!Number.isInteger(ch)||ch<1||ch>8)return false;
+  setChapter(ch);window.show('v19-studio');return true;
+ }});
  nav.addEventListener('click',evt=>{
   const item=evt.target.closest('.nav-item[data-mod]');
   if(item&&item.dataset.mod!=='v19-studio')stop();
