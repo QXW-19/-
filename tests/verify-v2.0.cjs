@@ -52,7 +52,7 @@ test('旧 V1.1 完成标记只读展示',()=>{
  const r=M.gather(combined);assert.equal(r.oldChapterCompletions,2);assert.equal(r.chapters[1].legacyDone,true);
 });
 test('自评缺失时本章只达成三个里程碑',()=>{
- const s=storage({...combined.entries(),[M.KEYS.hub]:{version:1,currentChapter:2,labDone:[],navExpanded:false}});
+ const s=storage({...Object.fromEntries(Object.entries(combined.entries()).map(([k,v])=>[k,JSON.parse(v)])),[M.KEYS.hub]:{version:1,currentChapter:2,labDone:[],navExpanded:false}});
  const c=M.gather(s).chapters[0];assert.equal(c.milestones,3);assert.equal(c.done,false);
 });
 test('四项里程碑达成后章节标已达成',()=>{
@@ -76,7 +76,7 @@ test('讲义与分层题通过后推荐实验',()=>{
  assert.equal(M.nextAction(M.gather(s).chapters[0]).kind,'lab');
 });
 test('实验完成后且成绩不达标时推荐考试',()=>{
- const s=storage({...combined.entries(),[M.KEYS.exam]:{history:[{mode:'chapter',chapter:1,score:60}]}});
+ const s=storage({...Object.fromEntries(Object.entries(combined.entries()).map(([k,v])=>[k,JSON.parse(v)])),[M.KEYS.exam]:{history:[{mode:'chapter',chapter:1,score:60}]}});
  assert.equal(M.nextAction(M.gather(s).chapters[0]).kind,'exam');
 });
 test('重复章节成绩只取最高且只认 V1.5 章节考试',()=>{
