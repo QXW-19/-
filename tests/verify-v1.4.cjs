@@ -31,7 +31,7 @@ check('JK=10 置位',()=>{
  let s=E.create('JK');s=E.setInput(s,'K',0);assert.equal(E.step(s).q,1);
 });
 check('JK=11 翻转',()=>{
- let s=E.create('JK');assert.equal(E.step(s).q,1);
+ let s=E.create('JK');s=E.step(s);assert.equal(s.q,1);
  s=E.step(s);assert.equal(s.q,0);
 });
 check('模 6 计数 000 到 101 后回绕',()=>{
