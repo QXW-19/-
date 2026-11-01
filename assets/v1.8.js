@@ -181,7 +181,7 @@ function buildPractice(l){
  return wrap;
 }
 function quizPanel(l){
- const p=section('理解检测 · 答对后解锁下一节'),form=el('fieldset',undefined,'v18-quiz'),legend=el('legend',l.quiz.question);
+ const p=section('理解检测 · 答对后记录掌握情况'),form=el('fieldset',undefined,'v18-quiz'),legend=el('legend',l.quiz.question);
  form.append(legend);let selected=null;
  l.quiz.options.forEach((text,i)=>{
   const label=el('label',undefined,'v18-choice'),radio=el('input');
