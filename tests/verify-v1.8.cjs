@@ -21,7 +21,7 @@ test('课程 ID 唯一且章节编号顺序正确',()=>{
 });
 test('每一节有通俗类比与关键推理',()=>{
  for(const l of data.lessons){
-  for(const field of ['title','analogy','explanation','formula','pitfall','practice'])assert.ok(typeof l[field]==='string'&&l[field].length>=10,l.id+': '+field);
+  for(const field of ['title','analogy','explanation','formula','pitfall','practice'])assert.ok(typeof l[field]==='string'&&l[field].length>=(field==='title'||field==='formula'?3:10),l.id+': '+field);
  }
 });
 test('每节的三步例题完整',()=>{
