@@ -5,7 +5,7 @@
 (function(root,factory){
  const api=factory();
  if(typeof module==='object'&&module.exports)module.exports=api;
- else root.DigitalV20=factory();
+ else root.DigitalV20=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
 const CHAPTERS=Object.freeze([
