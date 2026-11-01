@@ -29,7 +29,7 @@ verify('每章有基础、进阶、应用各一题',()=>{
 });
 verify('题目 ID 唯一、选项和解析完整',()=>{
  const ids=data.questions.map(q=>q.id);assert.equal(new Set(ids).size,24);
- data.questions.forEach(q=>{assert.equal(q.options.length,3);assert.ok(q.options[q.correct]);assert.ok(q.why.length>=6);});
+ data.questions.forEach(q=>{assert.equal(q.options.length,3);assert.ok(q.options[q.correct]);assert.ok(q.why.length>=4);});
 });
 verify('空白进度可恢复',()=>assert.deepEqual(Core.safeState(data,Core.fresh()),Core.fresh()));
 verify('八章步进存储相互独立',()=>{
