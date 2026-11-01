@@ -32,3 +32,6 @@
 #v20-home .v22-empty p{font-size:12px;line-height:1.7;color:var(--ink2,#64748b)}
 @media(max-width:760px){#v20-home .v22-results{grid-template-columns:1fr}}
 @media(max-width:560px){#v20-home .v22-controls{grid-template-columns:1fr}#v20-home .v22-quick .v22-button{flex:1 1 45%}}
+
+/* V2.0 资源容器原本是双列快捷卡；统一资源库应占满整行。 */
+#v20-home .v20-shelf > .v22-resource-center{grid-column:1/-1}
