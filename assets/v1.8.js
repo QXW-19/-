@@ -267,6 +267,11 @@ function init(){
  notice=el('p','学习进度仅保存在当前浏览器，请定期导出备份。','v18-notice');root.append(notice);
  main.append(root);
  render();
+ // V2.0 统一导航：保留 V1.8 的独立进度和操作逻辑。
+ window.DigitalV18Navigation=Object.freeze({
+  openLesson(id){if(!byId.has(id))return false;choose(id);return true;},
+  openChapter(ch){const first=lessons.find(x=>x.chapter===ch);if(!first)return false;choose(first.id);return true;}
+ });
  if(window.location.hash==='#v18-school'||window.__v13InitialHash==='#v18-school')window.show('v18-school');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
