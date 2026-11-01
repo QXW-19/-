@@ -1,0 +1,34 @@
+/* V2.2 统一学习资源库：仅作用于 V2.0 首页，旧课堂样式不变。 */
+#v20-home .v22-resource-center{width:100%;min-width:0}
+#v20-home .v22-panel{background:var(--card,#fff);color:var(--ink,#0f172a);width:100%;min-width:0}
+#v20-home .v22-header h3{font-size:17px;margin:0 0 8px}
+#v20-home .v22-header p{margin:0 0 12px}
+#v20-home .v22-muted{color:var(--ink2,#64748b);font-size:12px;line-height:1.75}
+#v20-home .v22-quick{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0;border-bottom:1px solid var(--line,#dbe3ed)}
+#v20-home .v22-button,#v20-home .v22-favorite,#v20-home .v22-recent-link{font:inherit;font-size:12px;font-weight:700;background:var(--bg,#f8fafc);color:var(--ink,#0f172a);border:1px solid var(--line,#cbd5e1);border-radius:9px;padding:8px 11px;cursor:pointer}
+#v20-home .v22-button:hover,#v20-home .v22-favorite:hover,#v20-home .v22-recent-link:hover{border-color:#0d9488}
+#v20-home .v22-open{background:#0f766e;border-color:#0f766e;color:#fff}
+#v20-home .v22-button:focus-visible,#v20-home .v22-favorite:focus-visible,#v20-home .v22-recent-link:focus-visible,#v20-home .v22-search:focus-visible,#v20-home .v22-select:focus-visible,#v20-home .v22-check:focus-within{outline:3px solid #f59e0b;outline-offset:2px}
+#v20-home .v22-favorite[aria-pressed="true"]{background:rgba(13,148,136,.1);color:var(--ink,#0f172a);border-color:#0d9488}
+#v20-home .v22-controls{display:grid;grid-template-columns:minmax(170px,2fr) minmax(130px,1fr);align-items:end;gap:12px;padding:13px 0}
+#v20-home .v22-label{display:grid;gap:6px;color:var(--ink,#0f172a);font-size:12px;font-weight:700}
+#v20-home .v22-search,#v20-home .v22-select{font:inherit;font-size:13px;width:100%;padding:10px 12px;border:1px solid var(--line,#94a3b8);border-radius:9px;background:var(--card,#fff);color:var(--ink,#0f172a);box-sizing:border-box;min-width:0}
+#v20-home .v22-checks{display:flex;flex-wrap:wrap;grid-column:1/-1;gap:15px}
+#v20-home .v22-check{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer}
+#v20-home .v22-check input{accent-color:#0f766e}
+#v20-home .v22-info{font-size:12px;color:var(--ink2,#64748b);line-height:1.75;margin:5px 0 12px}
+#v20-home .v22-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#v20-home .v22-item{border:1px solid var(--line,#dbe3ed);border-radius:10px;padding:13px;min-width:0;background:var(--bg,#f8fafc);display:flex;flex-direction:column;align-items:flex-start}
+#v20-home .v22-item h4{font-size:13.5px;line-height:1.65;color:var(--ink,#0f172a);margin:8px 0 4px;overflow-wrap:anywhere}
+#v20-home .v22-item p{font-size:11.5px;color:var(--ink2,#64748b);line-height:1.6;margin:0 0 12px}
+#v20-home .v22-tag{font-size:11px;font-weight:750;color:#115e59;border:1px solid #5eead4;background:#ccfbf1;border-radius:99px;padding:2px 9px}
+#v20-home .v22-item-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:auto}
+#v20-home .v22-actions{display:flex;justify-content:center;margin:13px 0 0}
+#v20-home .v22-recent{padding-bottom:8px}
+#v20-home .v22-recent-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 6px;font-size:13px}
+#v20-home .v22-recent-links{display:flex;flex-wrap:wrap;gap:7px}
+#v20-home .v22-recent-link{font-weight:500;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#v20-home .v22-empty{grid-column:1/-1;text-align:center;padding:23px;border:1px dashed var(--line,#94a3b8);border-radius:10px}
+#v20-home .v22-empty p{font-size:12px;line-height:1.7;color:var(--ink2,#64748b)}
+@media(max-width:760px){#v20-home .v22-results{grid-template-columns:1fr}}
+@media(max-width:560px){#v20-home .v22-controls{grid-template-columns:1fr}#v20-home .v22-quick .v22-button{flex:1 1 45%}}
