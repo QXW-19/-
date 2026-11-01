@@ -23,7 +23,8 @@ const KEYS=Object.freeze({
  base:'digital-course-v1.1',
  exam:'digital-course-v1.5',
  course:'digital-course-v1.8-study',
- diagrams:'digital-course-v1.9-learning'
+ diagrams:'digital-course-v1.9-learning',
+ cases:'digital-course-v2.1-cases'
 });
 function fresh(){return {version:1,currentChapter:1,labDone:[],navExpanded:false};}
 function safeHub(raw){
@@ -39,28 +40,30 @@ function readJSON(storage,key){
 function lessonIds(c){return Array.from({length:4},(_,i)=>'l'+c+'-'+(i+1));}
 function questionIds(c){return Array.from({length:3},(_,i)=>'v19-q'+String((c-1)*3+i+1).padStart(2,'0'));}
 function gather(storage){
- const legacy1=readJSON(storage,KEYS.base),legacy5=readJSON(storage,KEYS.exam),v18=readJSON(storage,KEYS.course),v19=readJSON(storage,KEYS.diagrams);
+ const legacy1=readJSON(storage,KEYS.base),legacy5=readJSON(storage,KEYS.exam),v18=readJSON(storage,KEYS.course),v19=readJSON(storage,KEYS.diagrams),v21=readJSON(storage,KEYS.cases);
  const hub=safeHub(readJSON(storage,KEYS.hub));
  const lessons=new Set(Array.isArray(v18?.completed)?v18.completed.filter(x=>typeof x==='string') : []);
  const questions=v19?.results&&typeof v19.results==='object'&&!Array.isArray(v19.results)?v19.results:{};
  const history=Array.isArray(legacy5?.history)?legacy5.history:[];
  const oldCompleted=new Set(Array.isArray(legacy1?.completed)?legacy1.completed.filter(x=>/^c[1-8]$/.test(x)) : []);
+ const casePassed=new Set(v21?.version===1&&Array.isArray(v21.passed)?v21.passed.filter(n=>Number.isInteger(n)&&n>=1&&n<=8):[]);
  const chapterData=CHAPTERS.map(info=>{
   const c=info.number;
   const completedLessons=lessonIds(c).filter(x=>lessons.has(x));
   const masteredQuestions=questionIds(c).filter(x=>questions[x]?.mastered===true);
   const exams=history.filter(h=>h&&h.mode==='chapter'&&h.chapter===c&&Number.isFinite(h.score)&&h.score>=0&&h.score<=100);
   const bestExam=exams.length?Math.max(...exams.map(h=>h.score)):null;
-  const labDone=hub.labDone.includes(c);
+  const labDone=hub.labDone.includes(c),caseStudyPassed=casePassed.has(c);
   const milestones=(completedLessons.length===4?1:0)+(masteredQuestions.length===3?1:0)+(labDone?1:0)+(bestExam!==null&&bestExam>=80?1:0);
   const done=milestones===4;
   const stage=done?'已达成':completedLessons.length||masteredQuestions.length||labDone||exams.length?'学习中':'尚未开始';
-  return {...info,completedLessons,masteredQuestions,lessons:completedLessons.length,questions:masteredQuestions.length,labDone,bestExam,examAttempts:exams.length,milestones,done,stage,legacyDone:oldCompleted.has('c'+c)};
+  return {...info,completedLessons,masteredQuestions,lessons:completedLessons.length,questions:masteredQuestions.length,labDone,caseStudyPassed,bestExam,examAttempts:exams.length,milestones,done,stage,legacyDone:oldCompleted.has('c'+c)};
  });
  const totals={
   lessons:chapterData.reduce((s,c)=>s+c.lessons,0),
   questions:chapterData.reduce((s,c)=>s+c.questions,0),
   labDone:chapterData.filter(c=>c.labDone).length,
+  cases:chapterData.filter(c=>c.caseStudyPassed).length,
   passedExams:chapterData.filter(c=>c.bestExam!==null&&c.bestExam>=80).length,
   milestones:chapterData.reduce((s,c)=>s+c.milestones,0),
   chapters:chapterData.filter(c=>c.done).length
@@ -68,7 +71,7 @@ function gather(storage){
  const recommendation=chapterData.find(c=>!c.done)||chapterData[7];
  return {hub,chapters:chapterData,totals,upNext:recommendation.number,
    oldChapterCompletions:oldCompleted.size,examHistoryCount:history.length,
-   sources:{course:Boolean(v18),diagrams:Boolean(v19),exam:Boolean(legacy5),base:Boolean(legacy1)}};
+   sources:{course:Boolean(v18),diagrams:Boolean(v19),exam:Boolean(legacy5),base:Boolean(legacy1),cases:Boolean(v21)}};
 }
 function nextAction(chapter){
  if(!chapter||!Number.isInteger(chapter.number)||chapter.number<1||chapter.number>8)throw Error('章节数据不正确');
