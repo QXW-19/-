@@ -170,6 +170,8 @@ function init(){
  footer.append(make('p','当前无云端同步：切换设备、浏览器或清理存储前，请在各旧版工具中导出 JSON 备份。原有 51 个教材页面及所有实验仍可通过上方资源搜索，或侧栏的“展开全部旧版功能”访问。','v20-muted'));page.append(footer);
  message=make('p','返回本首页时会重新读取进度。','v20-muted');message.setAttribute('role','status');page.append(message);
  main.append(page);
+ // 兼容 defer 脚本在 DOM interactive 时依次初始化：V2.2 就绪后刷新资源区。
+ window.addEventListener('digital-v22-ready',()=>{if(shortcuts)renderShortcuts();});
  window['onShow_v20-home']=refresh;
  render();expandOld(hub.navExpanded);
  const firstHash=window.__v13InitialHash;
