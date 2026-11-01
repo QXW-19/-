@@ -44,6 +44,22 @@ test('第二章卡诺图和第三章 CMOS 的外置控制器可操作',async({pa
  await page.locator('#cmHi').click();
  await expect(page.locator('#cmVout')).not.toBeEmpty();
 });
+test('第四至八章外置脚本可以接收真实鼠标操作',async({page})=>{
+ await openHome(page);
+ const cases=[
+  ['m4','#rcUp','#rcResult'],
+  ['m5','#ffPulse','#ffNarr'],
+  ['m6','#stStep','#stNow'],
+  ['m7','#nePause','#neF'],
+  ['m8','#adcStep','#adcCode']
+ ];
+ for(const [moduleId,control,result]of cases){
+  await page.evaluate(id=>window.show(id),moduleId);
+  await expect(page.locator('#'+moduleId)).toHaveClass(/active/);
+  await page.locator(control).click();
+  await expect(page.locator(result)).not.toBeEmpty();
+ }
+});
 test('32 节零基础讲义可从资源搜索直达，V2.1 知识衔接正常',async({page})=>{
  await openHome(page);
  const search=page.locator('#v22-resource-section .v22-search');
