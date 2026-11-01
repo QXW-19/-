@@ -27,4 +27,5 @@ test('恶意或损坏的 JSON 拒绝',()=>{for(const data of [{version:2,nodes:[
 test('开关与元件移动后可以导入还原',()=>{let c=M.example('halfAdder');c=M.moveNode(c,'n1',123,234);c=M.toggleSwitch(c,'n1');const obj=JSON.parse(JSON.stringify(c));assert.ok(M.validate(obj));assert.equal(obj.nodes[0].x,123);assert.equal(obj.nodes[0].value,1)});
 test('真值表最多四个输入开关',()=>{let c=M.example('and');for(let i=0;i<3;i++)c=M.addNode(c,'SWITCH');assert.throws(()=>M.truthTable(c),/最多/);});
 test('UI JS 语法和 CSS 结构',()=>{new vm.Script(fs.readFileSync(path.join(__dirname,'../assets/v1.3.js'),'utf8'));assert.match(fs.readFileSync(path.join(__dirname,'../assets/v1.3.css'),'utf8'),/\.v13-board/);});
+test('三值逻辑控制值：0 AND X 与 1 OR X',()=>{let c=M.newCircuit();c=M.addNode(c,'SWITCH');c=M.addNode(c,'AND');c=M.addNode(c,'OR');c=M.connect(c,'n1','n2',0);c=M.connect(c,'n1','n3',0);assert.equal(M.evaluate(c).n2.value,0);assert.equal(M.evaluate(c).n3.value,null);c=M.toggleSwitch(c,'n1');assert.equal(M.evaluate(c).n2.value,null);assert.equal(M.evaluate(c).n3.value,1)});
 console.log('共 '+n+' 项检查通过。实际浏览器端到端验收需另行执行。');
