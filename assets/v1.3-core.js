@@ -64,11 +64,10 @@
     validate(out);return out;
   }
   function calculate(type,inputs){
-    if(inputs.some(v=>v===null))return null;
     const [a,b]=inputs;
     switch(type){
-      case 'AND':return a&b;case 'OR':return a|b;case 'NOT':return 1-a;
-      case 'XOR':return a^b;case 'NAND':return 1-(a&b);case 'NOR':return 1-(a|b);
+      case 'AND':return inputs.includes(0)?0:(inputs.includes(null)?null:1);case 'OR':return inputs.includes(1)?1:(inputs.includes(null)?null:0);case 'NOT':return a===null?null:1-a;
+      case 'XOR':return inputs.includes(null)?null:a^b;case 'NAND':return inputs.includes(0)?1:(inputs.includes(null)?null:0);case 'NOR':return inputs.includes(1)?0:(inputs.includes(null)?null:1);
       case 'LED':return a;default:return null;
     }
   }
