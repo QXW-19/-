@@ -1,0 +1,9 @@
+# V2.3 本地浏览器测试依赖和自动生成报告
+node_modules/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.local
