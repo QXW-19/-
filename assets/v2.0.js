@@ -54,7 +54,7 @@ function refresh(){
 function renderStats(){
  stats.replaceChildren();
  const s=view.totals;
- const rows=[[s.lessons+'/32','已完成零基础知识点'],[s.questions+'/24','已掌握分层练习'],[s.labDone+'/8','已自评实验'],[s.chapters+'/8','章节学习里程碑']];
+ const rows=[[s.lessons+'/32','已完成零基础知识点'],[s.questions+'/24','已掌握分层练习'],[s.cases+'/8','完整案例已过关'],[s.labDone+'/8','已自评实验'],[s.chapters+'/8','章节学习里程碑']];
  for(const [v,label]of rows){
   const item=make('div',undefined,'v20-kpi');item.append(make('b',v),make('span',label));stats.append(item);
  }
@@ -76,7 +76,7 @@ function renderDetail(c){
  p.setAttribute('aria-valuemin','0');p.setAttribute('aria-valuemax','4');detail.append(p);
  const stack=make('div',undefined,'v20-steps');
  const missed=C.lessonIds(c.number).find(id=>!c.completedLessons.includes(id));
- stack.append(step(1,'先学懂 · 零基础讲义',c.lessons+'/4 节已通过。包含通俗讲解、例题推导、可操作的基础演示。',c.lessons===4,
+ stack.append(step(1,'先学懂 · 零基础讲义',c.lessons+'/4 节已通过。包含通俗讲解、例题推导、可操作的基础演示；五步综合案例'+(c.caseStudyPassed?'已通过。':'尚待完成。'),c.lessons===4,
   c.lessons===4?'复习讲义':'继续未完成的一节',()=>launch('learn',c.number,missed||C.lessonIds(c.number)[0])).item);
  stack.append(step(2,'再看懂 · 图解与分层练习',c.questions+'/3 道分层题已掌握。四步动画、基础题、进阶题和应用题。',c.questions===3,
   '进入本章图解与练习',()=>launch('diagram',c.number)).item);
