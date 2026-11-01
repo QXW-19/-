@@ -1,0 +1,37 @@
+/* V1.9 电路图解与分层练习 UI。所有样式隔离于 v19-*，保留原课堂。 */
+#v19-studio{--v19-accent:#0f766e;--v19-soft:rgba(13,148,136,.10)}
+.v19-panel{background:var(--card,#fff);color:var(--ink,#0f172a);border:1px solid var(--line,#cbd5e1);border-radius:14px;padding:17px;margin:13px 0}
+.v19-panel h2{font-size:18px;margin:0 0 10px}.v19-panel h3{font-size:15px;margin:7px 0}
+.v19-help{color:var(--ink2,#475569);font-size:13px;line-height:1.9}
+.v19-layout{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,1fr);gap:15px;align-items:start}
+.v19-sidebar{display:grid;gap:8px;align-content:start}
+.v19-chapter{appearance:none;padding:12px 11px;border:1px solid var(--line,#cbd5e1);background:var(--card,#fff);color:var(--ink,#0f172a);border-radius:10px;text-align:left;font:inherit;font-size:13px;cursor:pointer;line-height:1.6}
+.v19-chapter[aria-pressed="true"]{border-color:#0d9488;background:var(--v19-soft);font-weight:750}.v19-chapter:hover{border-color:#0d9488}
+.v19-chapter small{font-size:11px;display:block;color:var(--ink2,#64748b)}
+.v19-work{min-width:0}.v19-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+.v19-btn{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--line,#94a3b8);background:var(--bg,#f8fafc);color:var(--ink,#0f172a);border-radius:9px;padding:9px 11px;cursor:pointer}
+.v19-btn.primary{background:#0f766e;color:#fff;border-color:#0f766e}.v19-btn:hover{border-color:#0d9488}.v19-btn:disabled{opacity:.43;cursor:not-allowed}
+.v19-btn:focus-visible,.v19-chapter:focus-visible,.v19-choice:focus-within{outline:3px solid #f59e0b;outline-offset:2px}
+.v19-stage-scroll{overflow-x:auto;max-width:100%;background:var(--bg,#f1f5f9);border:1px solid var(--line,#cbd5e1);border-radius:12px}
+.v19-diagram{display:block;width:100%;min-width:580px;height:auto}
+.v19-edge{fill:none;stroke:#94a3b8;stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+.v19-edge.active{stroke:#0d9488;stroke-width:4.1;stroke-dasharray:9 7;animation:v19dash 1.2s linear infinite}
+.v19-node rect{fill:var(--card,#fff);stroke:#94a3b8;stroke-width:1.6}
+.v19-node text{font:600 12px system-ui,-apple-system,'Microsoft YaHei',sans-serif;fill:var(--ink,#0f172a);text-anchor:middle}
+.v19-node.active rect{fill:rgba(13,148,136,.13);stroke:#0d9488;stroke-width:2.6}
+.v19-step{background:rgba(13,148,136,.075);border-left:4px solid #0d9488;border-radius:0 8px 8px 0;padding:11px 13px;font-size:14px;line-height:1.9;margin:12px 0}
+.v19-step strong{display:block;margin-bottom:4px}
+.v19-progress{height:9px;background:var(--bg,#e2e8f0);border:1px solid var(--line,#cbd5e1);border-radius:999px;overflow:hidden}
+.v19-progress span{height:100%;background:#0d9488;display:block;transition:width .2s}
+.v19-questions{display:grid;gap:12px}
+.v19-quiz{border:1px solid var(--line,#dbe3ed);background:var(--card,#fff);border-radius:12px;padding:14px;min-width:0}
+.v19-quiz h3{font-size:15px;line-height:1.6}.v19-tier{display:inline-flex;border-radius:999px;border:1px solid var(--line,#cbd5e1);padding:3px 9px;color:var(--ink2,#475569);font-size:11px;font-weight:700}
+.v19-choice{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line,#cbd5e1);border-radius:9px;padding:9px 11px;margin:7px 0;cursor:pointer;font-size:13px;line-height:1.65}
+.v19-choice:has(input:checked){border-color:#0d9488;background:var(--v19-soft)}.v19-choice input{accent-color:#0d9488;margin-top:4px;flex:none}
+.v19-answer{border-left:3px solid #0d9488;padding:10px 12px;border-radius:0 7px 7px 0;background:var(--bg,#f1f5f9);font-size:13px;line-height:1.9;margin-top:10px}
+.v19-answer.wrong{border-left-color:#d97706}.v19-answer[hidden]{display:none}
+.v19-status{font-size:12px;color:var(--ink2,#475569);line-height:1.7}
+@keyframes v19dash{to{stroke-dashoffset:-32}}
+@media(max-width:880px){.v19-layout{grid-template-columns:1fr}.v19-sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.v19-sidebar{grid-template-columns:1fr}.v19-panel{padding:12px}.v19-panel h2{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.v19-edge.active{animation:none}.v19-edge,.v19-progress span{transition:none}}
