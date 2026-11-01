@@ -73,10 +73,16 @@ function add(c,type,x=80,y=80){
 }
 function move(c,id,x,y){validate(c);const out=copy(c),n=out.nodes.find(n=>n.id===id);if(!n)throw Error('元件不存在');n.x=Math.round(Math.max(0,Math.min(5000,x)));n.y=Math.round(Math.max(0,Math.min(5000,y)));return out;}
 function remove(c,id){validate(c);const out=copy(c);out.nodes=out.nodes.filter(n=>n.id!==id);out.wires=out.wires.filter(w=>w.from!==id&&w.to!==id);out.history=[];out.tick=0;return out;}
-function disconnect(c,to,input){validate(c);const out=copy(c);out.wires=out.wires.filter(w=>w.to!==to||w.input!==input);return out;}
+function syncClocks(c){
+ const sampled=evaluate(c);
+ for(const n of c.nodes)if(SPECS[n.type].kind==='seq')
+  n.lastClk=sampled[n.id].inputs[SPECS[n.type].clock];
+ return c;
+}
+function disconnect(c,to,input){validate(c);const out=copy(c);out.wires=out.wires.filter(w=>w.to!==to||w.input!==input);return syncClocks(out);}
 function connect(c,from,output,to,input){
  validate(c);const out=disconnect(c,to,input);out.wires.push({from,output,to,input});validate(out);
- return out;
+ return syncClocks(out);
 }
 function evalGate(type,ins){
  const [a,b]=ins;
