@@ -120,7 +120,8 @@ check('无法将其他版本的数据误导入 V1.5',()=>{
 });
 check('损坏的单选答案和外来题号被丢弃',()=>{
  const p=paper('chapter',{chapter:1}),s=E.fresh();
- s.active={...p,id:'test-invalid',startedAt:1762000000000,answers:{[p.questionIds[0]]:99,ghost:3}};
+ const choiceId=p.questionIds.find(id=>bank.questions.find(q=>q.id===id).type==='choice');
+ s.active={...p,id:'test-invalid',startedAt:1762000000000,answers:{[choiceId]:99,ghost:3}};
  assert.deepEqual(E.safeState(bank,s).active.answers,{});
 });
 check('前端 JS 可解析且原有 51 模块保留',()=>{
