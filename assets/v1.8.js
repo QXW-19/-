@@ -193,7 +193,7 @@ function quizPanel(l){
  form.append(btn('提交答案',()=>{
   if(selected===null){feedback.textContent='请先选择一个答案。';return;}
   const right=selected===l.quiz.correct;
-  feedback.textContent=(right?'✓ 回答正确！':'✗ 还需要复习。')+' '+l.quiz.why;
+  feedback.textContent=(right?'✓ 回答正确！':'✗ 还需要复习。')+' '+l.quiz.why+(right?'':(window.DigitalV21Enhance?.diagnostic(l.id,selected)||''));
   feedback.classList.toggle('v18-wrong',!right);
   if(right&&!state.completed.includes(l.id)){
    state.completed.push(l.id);save();renderSummary();renderSide();
@@ -238,6 +238,8 @@ function renderLesson(){
  if(index<lessons.length-1)footer.append(btn('下一节',()=>choose(lessons[index+1].id),'v18-btn v18-primary'));
  mainPane.append(footer);
  mainPane.append(el('p','资料定位：参考阎石《数字电子技术基础》第六版的相关知识体系，本页为原创教学解说，不是未经核实的教材原文。','v18-help'));
+ // V2.1 插入知识衔接与跨概念推导，不改变 V1.8 原有学习进度。
+ window.DigitalV21Enhance?.renderLesson(mainPane,l.id);
 }
 function choose(id){
  if(!byId.has(id))return;
