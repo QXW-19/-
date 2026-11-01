@@ -236,6 +236,14 @@ function init(){
  section.append(header);mainBody=el('div');section.append(mainBody);main.append(section);
  state=load();
  render();
+ // V2.0 学习中心直接进入某章考试设置，不擅自开始新试卷。
+ window.DigitalV15Navigation=Object.freeze({openChapter(ch){
+  if(!Number.isInteger(ch)||ch<1||ch>8)return false;
+  if(state.active){window.show('v15-exam');return true;}
+  modeSelect.value='chapter';chapterSelect.value=String(ch);
+  chapterSelect.closest('label').style.display='flex';
+  window.show('v15-exam');return true;
+ }});
  // 关闭浏览器并不暂停限时测试；回来后仍然按绝对时间检查截止。
  if(state.active&&state.active.durationMs!==null&&timeLeft()<=0)submit(true);
  if(window.location.hash==='#v15-exam'||window.__v13InitialHash==='#v15-exam')window.show('v15-exam');
