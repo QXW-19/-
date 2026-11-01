@@ -153,6 +153,10 @@ function init(){
   selectChapter(view.upNext);
   document.getElementById('v20-chapter-root')?.scrollIntoView({behavior:'smooth',block:'start'});
  },'v20-button outline'));
+ calls.append(button('查找教材或实验',()=>{
+  document.getElementById('v22-resource-section')?.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelector('#v22-resource-section .v22-search')?.focus();
+ },'v20-button outline'));
  hero.append(calls);page.append(hero);
  stats=make('div',undefined,'v20-kpis');page.append(stats);
  const course=section('八章循序渐进学习路线');course.id='v20-chapter-root';
@@ -160,7 +164,7 @@ function init(){
  const grid=make('div',undefined,'v20-chapter-layout');
  chapters=make('nav',undefined,'v20-chapter-nav');chapters.setAttribute('aria-label','八章学习导航');
  detail=make('div');grid.append(chapters,detail);course.append(grid);page.append(course);
- const library=section('课程资源与学习工具');shortcuts=make('div',undefined,'v20-shelf');library.append(shortcuts);page.append(library);
+ const library=section('课程资源与学习工具');library.id='v22-resource-section';shortcuts=make('div',undefined,'v20-shelf');library.append(shortcuts);page.append(library);
  const footer=section('学习数据说明');
  footer.append(make('p','V1.8 的 32 节进度、V1.9 的 24 道分层题、V1.5 的章节考试和 V1.1 的旧章记录会分别保存在原来的浏览器存储中。V2.0 不修改旧数据，只保存本版实验自评和导航偏好。','v20-muted'));
  footer.append(make('p','当前无云端同步：切换设备、浏览器或清理存储前，请在各旧版工具中导出 JSON 备份。原有 51 个教材页面及所有实验仍可通过上方资源搜索，或侧栏的“展开全部旧版功能”访问。','v20-muted'));page.append(footer);
@@ -170,6 +174,7 @@ function init(){
  render();expandOld(hub.navExpanded);
  const firstHash=window.__v13InitialHash;
  if(firstHash===''||firstHash==='#v20-home')window.show('v20-home');
+ else if(typeof firstHash==='string'&&firstHash.startsWith('#')&&firstHash!=='#v20-home')expandOld(true);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
 else init();
