@@ -666,3 +666,72 @@ py -m http.server 8001 --bind 127.0.0.1
 - `tests/verify-v2.2.cjs`：**35 项**资源目录、收藏/搜索、静态结构与兼容回归。
 
 本版对页面的**资源组织结构进行了模块化整理**，但没有把原本约 52 万字符的大型 HTML 全部拆成独立组件。将 51 个旧章节整体迁移是更高风险的专项重构，应在真实浏览器完整验收后分批进行，避免损坏公式和互动脚本。**本次自动测试不等于完整的 Windows 浏览器、手机触摸或 3D/WebGL 端到端验收。**
+
+## V2.3.0 · 大型 HTML 第一批安全拆分 + Chromium 浏览器自动化
+
+**主参考书仍为阎石《数字电子技术基础》第六版。** 本阶段主要改善工程可维护性，不改变教材知识内容、练习答案与历史学习记录，也不声称已完成全部 51 个章节的组件化迁移。
+
+### 已完成的第一批拆分
+
+- 将原 HTML 内的公共 CSS **逐字**迁移到 `assets/legacy/classroom.css`（30,680 字符）。
+- 将八章核心互动脚本分别迁移到 `assets/chapters/ch01-complement.js` 至 `assets/chapters/ch08-adc.js`。
+- 将原始 `BOOK` 目录构建和 `show(id)` 页面导航逻辑迁移到 `assets/legacy/navigation.js`。
+- 主 HTML 从约 **522,001 字符缩至 426,338 字符**，减少 **95,663 字符**（约 18.3%）；保留 **51 个原始 `section.mod` 模块**，所有 V1.1～V2.2 的 JS 资源仍按原顺序引入。
+- 提取操作采取 **原位置、原内容、原顺序** 的方案：八章与导航脚本用普通不带 `defer` 的同步 `<script src="..."></script>` 替代原内联脚本。它们在执行时立即查找对应 DOM、绑定按钮，**不能擅自改为 defer / async 或 type=module**。
+- 原来较复杂的 `<script type="module">` 3D/WebGL 内容与其他早期内联实验暂时原样保留，避免本轮扩大战线。
+
+`assets/chapters/README.md` 记录各文件的原始页面编号、执行顺序及下一批重构时需要遵守的兼容性约束。
+
+### 安装和本地运行（Windows + VSCode）
+
+在旧项目的上一级文件夹打开 PowerShell：
+
+```powershell
+git clone --branch feature/digital-course-v2.3 --single-branch https://github.com/QXW-19/-.git digital-course-v2.3
+cd .\digital-course-v2.3
+
+# 无需安装 npm 依赖即可执行结构和旧版逻辑测试
+node .\tests\verify-v2.0.cjs
+node .\tests\verify-v2.1.cjs
+node .\tests\verify-v2.2.cjs
+node .\tests\verify-v2.3.cjs
+
+# 手工访问网站
+py -m http.server 8001 --bind 127.0.0.1
+```
+
+浏览器打开 `http://127.0.0.1:8001/`。请不要直接双击 `file://` 文件：现在网页包含更多外部资源，使用本地 HTTP 服务才能正确验证。
+
+### 真实浏览器自动化测试（新增）
+
+V2.3 额外加入 Playwright 的 Chromium 浏览器冒烟测试，用于自动验证：
+
+1. 从根目录进入 V2.0 首页、页面导航、八章原始 DOM、公共样式；
+2. 通过资源库搜索进入第一章补码互动；
+3. 操作第二章卡诺图、第三章 CMOS，以及第四至第八章原有控制按钮；
+4. 通过资源搜索直达 V1.8 的指定讲义，并显示 V2.1 知识衔接卡；
+5. 收藏项目、刷新后保留收藏，返回首页查看最近访问记录；
+6. 读取旧版 localStorage 学习记录、验证统计，不擅自覆盖；
+7. 在窄屏浏览器下搜索资源并打开第七章课程。
+
+运行方式（**需要网络安装 npm 包和 Chromium**）：
+
+```powershell
+npm install
+npx playwright install chromium
+npm run test:browser
+```
+
+Playwright 通过 `playwright.config.cjs` 自动启动 Python 静态服务，默认地址 `127.0.0.1:8001`，不需要事先另开 Python 服务；如果已经运行本地服务器，则可复用。测试失败时会保存浏览器截图/trace 到 Playwright 的默认报告目录。
+
+项目加入 `.github/workflows/v2.3-browser-smoke.yml`，配置在 V2.3 分支推送或 PR 时执行：安装 Node 22、Chromium，运行旧版/新版回归和真实浏览器冒烟测试。**工作流是否真正完成，请以 GitHub Actions 页面里的实际运行记录为准；创建测试文件不等于已经执行了 Chromium 测试。**
+
+### 本阶段的测试结果及下一步边界
+
+- V2.0 回归：**27 项通过**。
+- V2.1 回归：**36 项通过**。
+- V2.2 回归：**35 项通过**。
+- V2.3 拆分结构：**11 项通过**，对 10 个新文件固定原版字符长度与 FNV-1a 内容校验值，确认提取后代码没有遗漏。
+- 累计 **109 项静态与纯逻辑检查通过**。这些是在 GitHub 已提交的源码上进行的远程代码级验收，**不能冒充本地 Chromium 测试已通过**。
+
+推荐后续按模块分批迁移余下经典脚本和 3D 模块，每批都保留旧版标签并运行 Playwright；在没有真实浏览器验收之前，**不直接把 51 个教材 section 改成异步加载**，避免破坏原有初始化、锚点导航和旧用户学习记录。
