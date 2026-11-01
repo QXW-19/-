@@ -24,7 +24,7 @@ function validate(base,extra){
  for(let i=0;i<8;i++){
   const c=extra.caseStudies[i],q=extra.checkpoints[i];
   if(!c||c.chapter!==i+1||!c.title||!c.goal||!c.given||!c.question||!c.answer||!c.next||!Array.isArray(c.steps)||c.steps.length!==5)throw Error('章级推导不完整');
-  for(const row of c.steps)if(!Array.isArray(row)||row.length!==2||row.some(t=>typeof t!=='string'||t.length<5))throw Error('推导步骤缺失');
+  for(const row of c.steps)if(!Array.isArray(row)||row.length!==2||(typeof row[0]!=='string'||row[0].length<2||typeof row[1]!=='string'||row[1].length<12))throw Error('推导步骤缺失');
   if(!q||typeof q.question!=='string'||!Array.isArray(q.options)||q.options.length!==3||new Set(q.options).size!==3||
   !Number.isInteger(q.correct)||q.correct<0||q.correct>2||typeof q.why!=='string'||q.why.length<10)throw Error('迁移检测无效');
  }
