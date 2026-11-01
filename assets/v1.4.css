@@ -1,0 +1,34 @@
+/* V1.4 时序实验室：隔离命名，不覆盖既有教材页面。 */
+.v14-panel{border:1px solid var(--line,#e2e8f0);background:var(--card,#fff);color:var(--ink,#0f172a);padding:16px;border-radius:14px;margin:14px 0}
+.v14-panel h2{font-size:16px;margin:0 0 10px}.v14-panel p{font-size:13px;line-height:1.75;color:var(--ink2,#475569)}
+.v14-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.v14-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.v14-btn,.v14-select{padding:8px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink,#0f172a);background:var(--bg,#f8fafc);border:1px solid var(--line,#cbd5e1);border-radius:9px;cursor:pointer}
+.v14-btn:hover{border-color:#0d9488}.v14-btn:disabled{cursor:not-allowed;opacity:.45}.v14-btn:focus-visible,.v14-select:focus-visible,.v14-input:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.v14-btn-primary{background:#0f766e;color:#fff;border-color:#0f766e}.v14-btn-primary:hover{background:#115e59}
+.v14-label{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700}
+.v14-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(280px,1.5fr);gap:14px;align-items:start}
+.v14-big{font-family:ui-monospace,Consolas,monospace;font-size:34px;font-weight:800;letter-spacing:.06em;color:var(--ink,#0f172a);word-break:break-word}
+.v14-register{background:var(--bg,#f1f5f9);border-radius:13px;padding:15px;margin-top:12px;border:1px solid var(--line,#e2e8f0)}
+.v14-metric{font-size:12px;font-weight:700;color:var(--ink2,#475569)}
+.v14-chip{display:inline-block;padding:3px 8px;margin:4px 5px 0 0;background:rgba(13,148,136,.12);color:var(--ink,#0f172a);border-radius:7px;font-size:12px}
+.v14-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px 0}
+.v14-input-control{display:flex;align-items:center;gap:8px;border:1px solid var(--line,#e2e8f0);padding:9px;border-radius:10px;font-size:13px}
+.v14-input-control button{margin-left:auto}
+.v14-note{font-size:12px;color:var(--ink2,#64748b);line-height:1.8}
+.v14-wave-scroll{overflow-x:auto;max-width:100%;padding:6px 0}
+.v14-wave{display:block;min-width:620px;width:100%;height:auto;background:var(--bg,#f8fafc);border:1px solid var(--line,#e2e8f0);border-radius:10px}
+.v14-wave text{fill:var(--ink2,#475569);font:12px ui-monospace,Consolas,monospace}
+.v14-wave .v14-grid{stroke:var(--line,#cbd5e1);stroke-width:1}
+.v14-wave .v14-path{stroke:#0d9488;stroke-width:2.6;fill:none;stroke-linejoin:round}
+.v14-wave .v14-clock{stroke:#64748b;stroke-width:2.4;fill:none}
+.v14-table-scroll{overflow:auto;max-height:340px}
+.v14-table{width:100%;border-collapse:collapse;font-size:12.5px;text-align:left;white-space:nowrap}
+.v14-table th,.v14-table td{border-bottom:1px solid var(--line,#e2e8f0);padding:7px}
+.v14-table th{position:sticky;top:0;background:var(--card,#fff);color:var(--ink,#0f172a);z-index:1}
+.v14-error{color:#b91c1c!important;font-weight:800}
+.v14-ok{color:#0d9488!important;font-weight:700}
+.v14-progress{color:var(--ink2,#475569);font-size:12px}
+.v14-hidden{display:none!important}
+@media(max-width:850px){.v14-layout{grid-template-columns:1fr}.v14-big{font-size:27px}}
+@media(prefers-reduced-motion:reduce){.v14-panel *, .v14-panel *:before{animation:none!important;transition:none!important}}
