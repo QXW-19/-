@@ -1,0 +1,38 @@
+/* V1.6 混合电路实验室，样式命名隔离，不改原教材。 */
+#v16-lab{--v16-green:#0d9488;--v16-border:var(--line,#d8e0eb)}
+.v16-panel{background:var(--card,#fff);color:var(--ink,#0f172a);border:1px solid var(--v16-border);padding:14px;border-radius:13px;margin:12px 0}
+.v16-panel h2{font-size:16px;margin:0 0 9px}.v16-panel p{font-size:12.5px;line-height:1.75;color:var(--ink2,#475569)}
+.v16-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.v16-btn,.v16-select{font:inherit;font-size:12.5px;font-weight:700;padding:8px 10px;border:1px solid #94a3b8;border-radius:8px;background:#f8fafc;color:#0f172a;cursor:pointer}
+.v16-btn:hover{background:#e0f2fe;border-color:#2563eb}.v16-btn:disabled{opacity:.45;cursor:default}
+.v16-btn-primary{background:#0f766e;color:#fff;border-color:#0f766e}
+.v16-btn-primary:hover{background:#115e59}.v16-btn:focus-visible,.v16-select:focus-visible,.v16-port:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.v16-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:bold;color:var(--ink,#0f172a)}
+.v16-layout{display:grid;grid-template-columns:185px minmax(0,1fr);gap:12px;align-items:start}
+.v16-palette{display:grid;gap:7px;max-height:700px;overflow:auto;align-content:start}
+.v16-palette .v16-btn{text-align:left;cursor:grab}
+.v16-palette h2,.v16-palette p{grid-column:1/-1}
+.v16-work{min-width:0}
+.v16-board-scroll{overflow:auto;border:1px solid #8ca6c0;border-radius:11px;background:#eaf1f9}
+.v16-board{width:1180px;height:760px;position:relative;isolation:isolate;overflow:hidden;user-select:none;color:#0f172a}
+.v16-grid{position:absolute;inset:0;pointer-events:none;background-size:24px 24px;background-image:linear-gradient(to right,#94a3b820 1px,transparent 1px),linear-gradient(to bottom,#94a3b820 1px,transparent 1px)}
+.v16-wires{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;overflow:visible}
+.v16-wire{stroke-width:3.2;fill:none;stroke-linecap:round;pointer-events:none}.v16-wire[data-v="0"]{stroke:#64748b}.v16-wire[data-v="1"]{stroke:#16a34a}.v16-wire[data-v="X"]{stroke:#ea580c;stroke-dasharray:7 5}
+.v16-wire-hit{stroke:transparent;stroke-width:15;fill:none;pointer-events:stroke;cursor:pointer}
+.v16-nodes{position:absolute;inset:0;z-index:2;pointer-events:none}
+.v16-node{position:absolute;width:154px;border:2px solid #94a3b8;background:#fff;border-radius:11px;box-shadow:0 4px 12px #0f172a20;pointer-events:auto;color:#0f172a}
+.v16-node.selected{border-color:#2563eb;box-shadow:0 0 0 3px #60a5fa44}
+.v16-node-head{cursor:move;touch-action:none;padding:7px 8px;font-size:12px;font-weight:bold;white-space:nowrap;background:#dbeafe;border-radius:8px 8px 0 0}
+.v16-node-mid{display:grid;place-content:center;gap:4px;padding:9px 7px;text-align:center;font-size:12px;min-height:50px}
+.v16-node-output{font:700 12px ui-monospace,Consolas,monospace;color:#0f766e}
+.v16-node-switch{border:1px solid #93c5fd;background:#eff6ff;border-radius:7px;padding:6px 8px;color:#1e40af;font-weight:800;cursor:pointer}
+.v16-led-on{color:#16a34a;font-weight:800;text-shadow:0 0 9px #22c55e66}.v16-led-off{color:#64748b;font-weight:800}.v16-led-x{color:#b45309;font-weight:800}
+.v16-pin-layer{position:absolute;inset:0;pointer-events:none}.v16-port{position:absolute;width:22px;height:22px;transform:translate(-50%,-50%);padding:0;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px #475569;font:800 9px sans-serif;cursor:crosshair;pointer-events:auto;display:grid;place-items:center}
+.v16-port.in{left:0;background:#fb923c;color:#111827}.v16-port.out{left:100%;background:#38bdf8;color:#082f49}.v16-port.pending{background:#4ade80;box-shadow:0 0 0 4px #22c55e55}
+.v16-footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;border:1px solid var(--v16-border);border-radius:9px;background:var(--card,#fff);padding:10px;margin:9px 0;color:var(--ink2,#64748b);font-size:12px}
+.v16-error{color:#b91c1c;font-weight:800}
+.v16-scroll{overflow:auto;max-height:280px}.v16-table{border-collapse:collapse;width:100%;font-size:12px;text-align:left}
+.v16-table th,.v16-table td{padding:7px;border-bottom:1px solid var(--v16-border);white-space:nowrap}
+.v16-table th{background:var(--bg,#f1f5f9);color:var(--ink,#0f172a)}
+.v16-callout{border-left:3px solid var(--v16-green);padding:8px 12px;background:rgba(13,148,136,.07);font-size:12.5px;line-height:1.8}
+@media(max-width:820px){.v16-layout{grid-template-columns:1fr}.v16-palette{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}.v16-palette h2,.v16-palette p{grid-column:1/-1}}
