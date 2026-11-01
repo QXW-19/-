@@ -154,4 +154,6 @@ function render(container,api){
  return true;
 }
 window.DigitalV22Tools=Object.freeze({render,catalog});
+// 如果 V2.0 首页比本脚本更早初始化，立即通知它升级资源列表。
+if(typeof window.dispatchEvent==='function'&&typeof window.Event==='function')window.dispatchEvent(new window.Event('digital-v22-ready'));
 })();
