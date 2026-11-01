@@ -30,7 +30,7 @@ function sectionCategory(id){
  return 'experiment';
 }
 function sectionChapter(id,subtitle){
- const m=/^[cgm nxw]([1-8])$/.exec(id); // 不用于 n9/n10/n11 的特殊模块。
+ const m=/^[cgmnxw]([1-8])$/.exec(id); // 不用于 n9/n10/n11 的特殊模块。
  if(m&&id[0]!=='w')return Number(m[1]);
  const fixed={'n9':6,'n10':5,'n11':6,'v13-lab':4,'v14-lab':5,'v15-exam':null,'v16-lab':6,'v17-beginner':null,'v17-projects':null,'v18-school':null,'v19-studio':null};
  if(Object.prototype.hasOwnProperty.call(fixed,id))return fixed[id];
