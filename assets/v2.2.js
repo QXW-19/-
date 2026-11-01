@@ -102,7 +102,7 @@ function render(container,api){
  };
  function drawRecent(){
   history.replaceChildren();
-  if(view.query||view.favorites||view.chapterOnly||view.category!=='all')return;
+  // 最近访问独立于搜索和分类筛选：返回首页时也应可见，方便继续上次实验。
   const ids=new Map(all.map(row=>[row.key,row]));
   const recent=state.recent.map(k=>ids.get(k)).filter(Boolean).slice(0,4);
   if(!recent.length)return;
