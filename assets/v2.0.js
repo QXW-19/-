@@ -44,6 +44,7 @@ function launch(kind,c,lessonId){
  else if(kind==='mix')success=navigate('v16-lab');
  else if(kind==='examCenter')success=navigate('v15-exam');
  if(!success)note('无法跳转，请检查目标功能是否正确加载。',true);
+ return success;
 }
 function selectChapter(c){
  hub.currentChapter=c;persist();renderChapters();
@@ -111,6 +112,11 @@ function renderChapters(){
  renderDetail(active);
 }
 function renderShortcuts(){
+ // V2.2：使用从真实教材页面自动生成的统一资源目录；
+ // 保留下面原有四张卡片作为独立脚本无法加载时的降级方案。
+ if(window.DigitalV22Tools?.render(shortcuts,{
+  navigate,launch,chapter:hub.currentChapter
+ }))return;
  shortcuts.replaceChildren();
  const cards=[
  ['32 节零基础讲义','概念、生活类比、例题推导及微型实验。','开始学理论',()=>launch('learn',hub.currentChapter)],
@@ -154,10 +160,10 @@ function init(){
  const grid=make('div',undefined,'v20-chapter-layout');
  chapters=make('nav',undefined,'v20-chapter-nav');chapters.setAttribute('aria-label','八章学习导航');
  detail=make('div');grid.append(chapters,detail);course.append(grid);page.append(course);
- const library=section('常用学习工具');shortcuts=make('div',undefined,'v20-shelf');library.append(shortcuts);page.append(library);
+ const library=section('课程资源与学习工具');shortcuts=make('div',undefined,'v20-shelf');library.append(shortcuts);page.append(library);
  const footer=section('学习数据说明');
  footer.append(make('p','V1.8 的 32 节进度、V1.9 的 24 道分层题、V1.5 的章节考试和 V1.1 的旧章记录会分别保存在原来的浏览器存储中。V2.0 不修改旧数据，只保存本版实验自评和导航偏好。','v20-muted'));
- footer.append(make('p','当前无云端同步：切换设备、浏览器或清理存储前，请在各旧版工具中导出 JSON 备份。原有 51 个教材页面及所有实验仍可通过“展开全部旧版功能”访问。','v20-muted'));page.append(footer);
+ footer.append(make('p','当前无云端同步：切换设备、浏览器或清理存储前，请在各旧版工具中导出 JSON 备份。原有 51 个教材页面及所有实验仍可通过上方资源搜索，或侧栏的“展开全部旧版功能”访问。','v20-muted'));page.append(footer);
  message=make('p','返回本首页时会重新读取进度。','v20-muted');message.setAttribute('role','status');page.append(message);
  main.append(page);
  window['onShow_v20-home']=refresh;
