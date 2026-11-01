@@ -113,4 +113,18 @@ test('资源浏览器 UI 不创建新版多余章节模块',()=>{
 test('所有 V2.2 JS 源码都可解析',()=>{
  for(const p of ['assets/v2.2-catalog.js','assets/v2.2.js','assets/v2.0.js'])new vm.Script(fs.readFileSync(path.join(root,p),'utf8'));
 });
+test('首页与资源浏览器均处理 defer 初始化顺序',()=>{
+ const home=fs.readFileSync(path.join(root,'assets/v2.0.js'),'utf8');
+ const ui=fs.readFileSync(path.join(root,'assets/v2.2.js'),'utf8');
+ assert.ok(home.includes("addEventListener('digital-v22-ready'"));
+ assert.ok(ui.includes("dispatchEvent(new window.Event('digital-v22-ready'))"));
+});
+test('统一资源库跨越旧双列卡片的两列宽度',()=>{
+ const css=fs.readFileSync(path.join(root,'assets/v2.2.css'),'utf8');
+ assert.ok(css.includes('.v20-shelf > .v22-resource-center{grid-column:1/-1}'));
+});
+test('切换章节时同时刷新当前章搜索筛选',()=>{
+ const s=fs.readFileSync(path.join(root,'assets/v2.0.js'),'utf8');
+ assert.ok(s.includes('hub.currentChapter=c;persist();renderChapters();renderShortcuts();'));
+});
 console.log('共 '+passed+' 项 V2.2 核心与静态回归通过。浏览器端 UI 仍需本机验收。');
