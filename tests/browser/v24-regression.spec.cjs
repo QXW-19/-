@@ -74,3 +74,15 @@ test('第二章波形与真值表脚本拆分后仍能切换示例',async({page}
   await page.locator('#wfEg1').click();
   await expect(page.locator('#wfSvg > *').first()).toBeAttached();
 });
+
+test('第三章三态总线外置脚本正常处理高阻、单路驱动和冲突',async({page})=>{
+  await enter(page);
+  await page.evaluate(()=>window.show('g3'));
+  await expect(page.locator('#triBus')).toHaveText('高阻（悬空）');
+  await page.locator('#triE1').click();
+  await expect(page.locator('#triBus')).toHaveText('1');
+  await page.locator('#triE2').click();
+  await expect(page.locator('#triBus')).toHaveText('冲突！');
+  await page.locator('#triClr').click();
+  await expect(page.locator('#triBus')).toHaveText('高阻（悬空）');
+});
