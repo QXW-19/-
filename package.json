@@ -7,8 +7,9 @@
     "test:legacy": "node tests/verify-v2.0.cjs && node tests/verify-v2.1.cjs && node tests/verify-v2.2.cjs",
     "test:structure": "node tests/verify-v2.3.cjs",
     "test:browser": "playwright test",
-    "test:all": "npm run test:legacy && npm run test:structure && npm run test:audit && npm run test:browser",
-    "test:audit": "node tests/audit-v2.4.cjs"
+    "test:all": "npm run test:legacy && npm run test:structure && npm run test:audit && npm run test:teaching && npm run test:browser",
+    "test:audit": "node tests/audit-v2.4.cjs",
+    "test:teaching": "node tests/verify-v2.4-teaching.cjs"
   },
   "engines": {
     "node": ">=20"
