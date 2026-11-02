@@ -64,3 +64,13 @@ test('第一章格雷码外置后仍能计算 7 到 8 的翻转差异',async({pa
   await expect(page.locator('#gcGrayFlip')).toHaveText('1 位');
   await expect(page.locator('#gcBinFlip')).toHaveText('4 位');
 });
+
+test('第二章波形与真值表脚本拆分后仍能切换示例',async({page})=>{
+  await enter(page);
+  await page.evaluate(()=>window.show('g2'));
+  await expect(page.locator('#wfSvg > *').first()).toBeAttached();
+  await page.locator('#wfEg2').click();
+  await expect(page.locator('#wfSvg > *').first()).toBeAttached();
+  await page.locator('#wfEg1').click();
+  await expect(page.locator('#wfSvg > *').first()).toBeAttached();
+});
