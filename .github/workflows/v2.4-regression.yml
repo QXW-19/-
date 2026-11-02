@@ -1,0 +1,38 @@
+name: V2.4 课程与浏览器回归
+on:
+  push:
+    branches:
+      - feature/digital-course-v2.4
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  legacy-and-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 配置 Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 安装 Playwright 依赖
+        run: npm install --no-audit --no-fund
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+      - name: 运行旧版逻辑回归
+        run: npm run test:legacy
+      - name: 运行 V2.3 结构兼容检查
+        run: npm run test:structure
+      - name: 运行 V2.3 + V2.4 浏览器测试
+        run: npm run test:browser
+      - name: 保存失败截图和追踪
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v24-browser-debug
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
