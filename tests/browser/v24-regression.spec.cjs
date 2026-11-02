@@ -51,3 +51,16 @@ test('打开课堂和切换课程不会覆写互相独立的旧版记录',async(
   ),Object.keys(entries));
   expect(actual).toEqual(entries);
 });
+
+test('第一章格雷码外置后仍能计算 7 到 8 的翻转差异',async({page})=>{
+  await enter(page);
+  const slider=page.locator('#gcSlider');
+  await expect(slider).toBeAttached();
+  await page.locator('#gcReset').click();
+  for(const value of [7,8]){
+    await slider.evaluate((el,n)=>{el.value=String(n);el.dispatchEvent(new Event('input',{bubbles:true}));},value);
+    await expect(page.locator('#gcVal')).toHaveText(String(value));
+  }
+  await expect(page.locator('#gcGrayFlip')).toHaveText('1 位');
+  await expect(page.locator('#gcBinFlip')).toHaveText('4 位');
+});
