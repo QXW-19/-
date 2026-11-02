@@ -25,6 +25,8 @@ jobs:
         run: npm run test:legacy
       - name: 运行 V2.3 结构兼容检查
         run: npm run test:structure
+      - name: 审计未拆分的脚本和资源引用
+        run: npm run test:audit
       - name: 运行 V2.3 + V2.4 浏览器测试
         run: npm run test:browser
       - name: 保存失败截图和追踪
