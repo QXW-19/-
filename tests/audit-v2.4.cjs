@@ -27,6 +27,13 @@ for(let i=0;i<scripts.length;i++){
     inlineScripts.push(item);
   }
 }
+// 第一批实际迁移必须保留原位置同步加载，防止格雷码控件绑定时序变化。
+const grayPath='assets/chapters/ch01-gray-code.js';
+const grayTag='<script src="'+grayPath+'"></script>';
+const graySource=fs.readFileSync(path.join(root,grayPath),'utf8');
+assert.ok(html.includes(grayTag),'格雷码同步脚本引用丢失');
+assert.ok(graySource.includes('gcSlider')&&graySource.includes('gcGrayFlip'),'格雷码核心控件不完整');
+assert.ok(!/<script[^>]*>[\\s\\S]*?第一章 · 格雷码[\\s\\S]*?<\\/script>/i.test(html),'格雷码不应重复内联');
 const sections=[...html.matchAll(/<section\b[^>]*class=["'][^"']*\bmod\b[^"']*["'][^>]*\bid=["']([^"']+)["']/gi)].map(x=>x[1]);
 assert.equal(sections.length,51,'V2.3 基线要求保留 51 个原始教学模块');
 assert.equal(new Set(sections).size,51,'原始模块 id 不可重复');
