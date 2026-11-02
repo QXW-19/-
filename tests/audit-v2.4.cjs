@@ -41,6 +41,12 @@ const waveSource=fs.readFileSync(path.join(root,wavePath),'utf8');
 assert.ok(html.includes(waveTag),'第二章波形脚本引用丢失');
 assert.ok(waveSource.includes('wfSvg')&&waveSource.includes('wfEg2'),'波形控制器关键操作缺失');
 assert.ok(!/<script[^>]*>[\\s\\S]*?第二章 · 波形图与真值表[\\s\\S]*?<\\/script>/i.test(html),'波形控制器不应重复内联');
+// 三态门与总线控制器按原位置外置，避免同一控件绑定两次。
+const triPath='assets/chapters/ch03-tristate-bus.js';
+const triTag='<script src="'+triPath+'"></script>';
+const triSource=fs.readFileSync(path.join(root,triPath),'utf8');
+assert.equal(html.split(triTag).length-1,1,'三态门脚本必须且只能加载一次');
+assert.ok(triSource.includes('triBus')&&triSource.includes('triClr')&&triSource.includes('triSvg'),'三态门控制器内容不完整');
 const sections=[...html.matchAll(/<section\b[^>]*class=["'][^"']*\bmod\b[^"']*["'][^>]*\bid=["']([^"']+)["']/gi)].map(x=>x[1]);
 assert.equal(sections.length,51,'V2.3 基线要求保留 51 个原始教学模块');
 assert.equal(new Set(sections).size,51,'原始模块 id 不可重复');
