@@ -17,10 +17,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: 安装 Playwright 依赖
-        run: npm install --no-audit --no-fund
-      - name: 安装 Chromium
-        run: npx playwright install --with-deps chromium
       - name: 运行旧版逻辑回归
         run: npm run test:legacy
       - name: 运行 V2.3 结构兼容检查
@@ -29,6 +25,10 @@ jobs:
         run: npm run test:audit
       - name: 检查数字电路教学计算一致性
         run: npm run test:teaching
+      - name: 安装 Playwright 依赖
+        run: npm install --no-audit --no-fund
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
       - name: 运行 V2.3 + V2.4 浏览器测试
         run: npm run test:browser
       - name: 保存失败截图和追踪
