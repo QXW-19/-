@@ -33,14 +33,14 @@ const grayTag='<script src="'+grayPath+'"></script>';
 const graySource=fs.readFileSync(path.join(root,grayPath),'utf8');
 assert.ok(html.includes(grayTag),'格雷码同步脚本引用丢失');
 assert.ok(graySource.includes('gcSlider')&&graySource.includes('gcGrayFlip'),'格雷码核心控件不完整');
-assert.ok(!/<script[^>]*>[\\s\\S]*?第一章 · 格雷码[\\s\\S]*?<\\/script>/i.test(html),'格雷码不应重复内联');
+assert.ok(!inlineScripts.some(x=>x.preview.includes('第一章 · 格雷码')),'格雷码不应重复内联');
 // 第二章波形与真值表脚本必须保持同步加载，避免事件绑定失效。
 const wavePath='assets/chapters/ch02-waveform.js';
 const waveTag='<script src="'+wavePath+'"></script>';
 const waveSource=fs.readFileSync(path.join(root,wavePath),'utf8');
 assert.ok(html.includes(waveTag),'第二章波形脚本引用丢失');
 assert.ok(waveSource.includes('wfSvg')&&waveSource.includes('wfEg2'),'波形控制器关键操作缺失');
-assert.ok(!/<script[^>]*>[\\s\\S]*?第二章 · 波形图与真值表[\\s\\S]*?<\\/script>/i.test(html),'波形控制器不应重复内联');
+assert.ok(!inlineScripts.some(x=>x.preview.includes('第二章 · 波形图与真值表')),'波形控制器不应重复内联');
 // 三态门与总线控制器按原位置外置，避免同一控件绑定两次。
 const triPath='assets/chapters/ch03-tristate-bus.js';
 const triTag='<script src="'+triPath+'"></script>';
