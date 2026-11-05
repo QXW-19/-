@@ -240,6 +240,8 @@ function renderLesson(){
  mainPane.append(el('p','资料定位：参考阎石《数字电子技术基础》第六版的相关知识体系，本页为原创教学解说，不是未经核实的教材原文。','v18-help'));
  // V2.1 插入知识衔接与跨概念推导，不改变 V1.8 原有学习进度。
  window.DigitalV21Enhance?.renderLesson(mainPane,l.id);
+ // V2.4 补齐图形演示、结果分析与错因解析，保持原有讲义数据与题库答案不变。
+ window.DigitalV24LearningLoop?.render(mainPane,l);
 }
 function choose(id){
  if(!byId.has(id))return;
