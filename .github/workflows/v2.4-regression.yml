@@ -21,6 +21,8 @@ jobs:
         run: npm run test:legacy
       - name: 运行 V2.3 结构兼容检查
         run: npm run test:structure
+      - name: 运行 V2.4 拆分结构回归
+        run: npm run test:split
       - name: 审计未拆分的脚本和资源引用
         run: npm run test:audit
       - name: 检查数字电路教学计算一致性

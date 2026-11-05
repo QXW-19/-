@@ -1,4 +1,4 @@
-/* V2.3 浏览器自动验收：依赖 @playwright/test；自动启动本地静态服务。 */
+/* V2.4 浏览器自动验收：依赖 @playwright/test；由 tests/static-server.cjs 启动本地静态服务。 */
 const {defineConfig}=require('@playwright/test');
 module.exports=defineConfig({
   testDir:'./tests/browser',
@@ -16,9 +16,9 @@ module.exports=defineConfig({
     screenshot:'only-on-failure'
   },
   webServer:{
-    command:process.platform==='win32'
-      ? 'py -m http.server 8001 --bind 127.0.0.1'
-      : 'python3 -m http.server 8001 --bind 127.0.0.1',
+    // 统一用仓库自带的 Node 静态服务：HTTP/1.1 keep-alive，避免 Windows 上
+    // Python http.server 的短连接耗尽问题，也不再依赖本机是否安装 Python。
+    command:'node tests/static-server.cjs',
     url:'http://127.0.0.1:8001/',
     reuseExistingServer:!process.env.CI,
     timeout:60000
