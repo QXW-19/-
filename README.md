@@ -722,7 +722,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Playwright 通过 `playwright.config.cjs` 自动启动 Python 静态服务，默认地址 `127.0.0.1:8001`，不需要事先另开 Python 服务；如果已经运行本地服务器，则可复用。测试失败时会保存浏览器截图/trace 到 Playwright 的默认报告目录。
+Playwright 通过 `playwright.config.cjs` 自动启动仓库自带的 Node 静态服务 `tests/static-server.cjs`，默认地址 `127.0.0.1:8001`，不需要事先另开 Python 服务；如果已经运行本地服务器，则可复用。该服务使用 HTTP/1.1 keep-alive，避免 Windows 上 Python `http.server` 的短连接堆积导致偶发 `net::ERR_NO_BUFFER_SPACE`。测试失败时会保存浏览器截图/trace 到 Playwright 的默认报告目录。
 
 项目加入 `.github/workflows/v2.3-browser-smoke.yml`，配置在 V2.3 分支推送或 PR 时执行：安装 Node 22、Chromium，运行旧版/新版回归和真实浏览器冒烟测试。**工作流是否真正完成，请以 GitHub Actions 页面里的实际运行记录为准；创建测试文件不等于已经执行了 Chromium 测试。**
 
@@ -735,3 +735,25 @@ Playwright 通过 `playwright.config.cjs` 自动启动 Python 静态服务，默
 - 累计 **109 项静态与纯逻辑检查通过**。这些是在 GitHub 已提交的源码上进行的远程代码级验收，**不能冒充本地 Chromium 测试已通过**。
 
 推荐后续按模块分批迁移余下经典脚本和 3D 模块，每批都保留旧版标签并运行 Playwright；在没有真实浏览器验收之前，**不直接把 51 个教材 section 改成异步加载**，避免破坏原有初始化、锚点导航和旧用户学习记录。
+
+## V2.4 当前工作记录
+
+### 1. GitHub Actions 失败修复（`legacy-and-chromium` 退出码 1）
+
+失败发生在工作流第 10 步「运行 V2.3 + V2.4 浏览器测试」，前面 9 步均成功。根因不是 Node 版本、依赖安装或弃用警告，而是 `tests/browser/v24-regression.spec.cjs` 中三个新增测试导航到了错误的模块：
+
+| 测试目标控件 | 实际所在模块 | 原测试使用的定位 |
+|---|---|---|
+| `#gcSlider` 格雷码 | `n1` 互动｜格雷码 | 未导航（默认 `c1`） |
+| `#wfSvg` 波形图 | `n2` 互动｜波形图 ↔ 真值表 | `g2`（第四章速查表） |
+| `#triE1` 三态总线 | `n3` 互动｜三态门与总线 | `g3`（第五章 74LS194 速查表） |
+
+`g1`～`g8` 是各章「速查」模块，编号并不按章序排列。控件位于隐藏的 `.mod` 中，Playwright 点击持续等待可见而超时。修复方式是改为 `window.show('n1'/'n2'/'n3')` 并断言模块已激活，**全部原有断言保持不变**，未删除测试、未降低标准、未使用 `continue-on-error`。GitHub Actions 运行 [41994157059](https://github.com/QXW-19/-/actions/runs/41994157059) 已在 `f43aee1` 上全流程通过。
+
+### 2. 第一批 HTML 模块化拆分
+
+见 `assets/chapters/README.md`。主 HTML 412978 → 376806 字符，内联脚本 30 → 25 个，外置本地脚本 41 → 46 个，脚本标签总数 71 个不变；51 个原始模块、八章、五个 3D 场景及原深链接均未改动。新增 `npm run test:split`（66 项结构检查）与 `tests/browser/v24-split-modules.spec.cjs`（6 项 Chromium 行为检查），并已加入 CI 流程与 `npm run test:all`。
+
+### 3. 验收边界
+
+3D 场景目前只验证页面入口与容器激活；WebGL 上下文创建与真实渲染受 GPU/浏览器/CDN 环境影响，需单独分级验收，不能把入口测试当作渲染通过。
