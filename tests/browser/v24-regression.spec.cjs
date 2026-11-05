@@ -54,6 +54,9 @@ test('打开课堂和切换课程不会覆写互相独立的旧版记录',async(
 
 test('第一章格雷码外置后仍能计算 7 到 8 的翻转差异',async({page})=>{
   await enter(page);
+  // 格雷码互动位于 n1（互动｜格雷码：相邻只差一位）；默认首页是 c1，须先切到该模块再操作控件。
+  await page.evaluate(()=>window.show('n1'));
+  await expect(page.locator('#n1')).toHaveClass(/active/);
   const slider=page.locator('#gcSlider');
   await expect(slider).toBeAttached();
   await page.locator('#gcReset').click();
@@ -67,7 +70,9 @@ test('第一章格雷码外置后仍能计算 7 到 8 的翻转差异',async({pa
 
 test('第二章波形与真值表脚本拆分后仍能切换示例',async({page})=>{
   await enter(page);
-  await page.evaluate(()=>window.show('g2'));
+  // 波形图 ↔ 真值表互动位于 n2；g2 是第四章速查表，不含波形控件。
+  await page.evaluate(()=>window.show('n2'));
+  await expect(page.locator('#n2')).toHaveClass(/active/);
   await expect(page.locator('#wfSvg > *').first()).toBeAttached();
   await page.locator('#wfEg2').click();
   await expect(page.locator('#wfSvg > *').first()).toBeAttached();
@@ -77,7 +82,9 @@ test('第二章波形与真值表脚本拆分后仍能切换示例',async({page}
 
 test('第三章三态总线外置脚本正常处理高阻、单路驱动和冲突',async({page})=>{
   await enter(page);
-  await page.evaluate(()=>window.show('g3'));
+  // 三态门与总线互动位于 n3；g3 是第五章 74LS194 速查表，不含总线控件。
+  await page.evaluate(()=>window.show('n3'));
+  await expect(page.locator('#n3')).toHaveClass(/active/);
   await expect(page.locator('#triBus')).toHaveText('高阻（悬空）');
   await page.locator('#triE1').click();
   await expect(page.locator('#triBus')).toHaveText('1');
