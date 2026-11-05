@@ -764,6 +764,24 @@ Playwright 通过 `playwright.config.cjs` 自动启动仓库自带的 Node 静�
 
 未改动任何已验证公式、题库答案、讲义数据、51 个原始模块、深链接或 localStorage 键名。`npm run test:loop` 含 14 项检查（32 节覆盖度、八环节完整性、原创性合规、二进制/补码/格雷码/加法器/译码器/数据选择器/触发器/计数器/555/ADC-DAC 的数值一致性）；`tests/browser/v24-learning-loop.spec.cjs` 在真实 Chromium 中逐节渲染全部 32 节并验证答题判分不受影响。
 
-### 4. 验收边界
+### 4. 完整浏览器回归（阶段 D）
 
-3D 场景目前只验证页面入口与容器激活；WebGL 上下文创建与真实渲染受 GPU/浏览器/CDN 环境影响，需单独分级验收，不能把入口测试当作渲染通过。
+新增 `tests/browser/v24-full-regression.spec.cjs`，补齐下列覆盖：首页与折叠侧栏导航、深链接 `#c7`、八章精讲与 `m1`～`m8` 原始互动控制器、章节考试交卷评分与错题记录（`digital-course-v1.5`）、四种视口（375/390/768/1440）下的章节切换与控件操作、整页本地资源 404/加载失败与未分类 JavaScript 错误。
+
+3D 严格分三级验收，彼此不混为一谈：
+
+| 级别 | 内容 | 通过条件 |
+|---|---|---|
+| 一级 · 页面入口 | 五个 `w1`～`w5` 场景可导航并激活 | 入口存在且可见 |
+| 二级 · WebGL 初始化 | 调用页面自带 `__K3.hasWebGL()` 并与真实 canvas 上下文比对 | 探测结果自洽，区分 GPU 与网络限制 |
+| 三级 · 真实渲染 | 仅当 WebGL 与 Three.js CDN 均可用时执行 | 检查 `#city3d` 内 Three.js canvas 尺寸与合成截图的字节多样性；否则显式 `test.skip` 并打印原因 |
+
+注意 `w1` 同时保留原生 Canvas 降级版（`#cityCanvas`，默认隐藏）与 Three.js 版（`#city3d` 内 canvas），真实渲染必须检查后者，不能把降级容器当作渲染成功。若 CI 环境无 GPU 加速或 CDN 被拦截，三级测试会如实标记为 skipped，不计入通过数。
+
+本地实测（Windows + Chromium，WebGL 与 CDN 均可用）：**35 项浏览器测试全部通过，0 失败、0 跳过**；三级渲染实测 canvas 958×560、截图约 97～106 KB、字节多样性 256。
+
+### 5. 验收边界与回退
+
+- 三级 3D 渲染依赖 GPU/WebGL 与 jsdelivr 等 CDN；GitHub Actions 的 Linux 无头 Chromium 若不具备条件会跳过，需以对应运行的 skipped 数量为准。
+- 主 HTML 在阶段 C 由编辑工具统一为 LF 行尾（原为 CRLF），字符数因此额外减少约 7.5 千；这是行尾归一化，不是删除教学内容。
+- 回退：本轮未改动任何存储格式、题库答案、公式或原始 51 个模块；如需回退，可 `git revert` 相应 `feat:` / `refactor:` 提交，或切回稳定基线 `feature/digital-course-v2.3`。旧版 `localStorage` 键名与数据格式保持兼容，无需迁移或清理。
