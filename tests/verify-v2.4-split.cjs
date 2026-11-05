@@ -27,7 +27,9 @@ const BATCH=[
 ];
 
 const tags=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
-ok(tags.length===71,'脚本标签总数保持 71 个（拆分不增删脚本位置）');
+// 基线 71 个脚本标签；阶段 C 新增 1 个 V2.4 学习闭环增强脚本，故为 72 个。
+// 这里仍然固定总数，任何批量 defer/async 化或脚本位置变动都会被发现。
+ok(tags.length===72,'脚本标签总数保持 72 个（原 71 个 + V2.4 学习闭环增强）');
 
 const inlineBodies=tags.filter(t=>!/\bsrc\s*=/.test(t[1])).map(t=>t[2]);
 const allSrc=tags.map(t=>(t[1].match(/\bsrc\s*=\s*["']([^"']+)["']/i)||[])[1]).filter(Boolean);
