@@ -1,7 +1,7 @@
 {
   "name": "digital-electronics-interactive-course",
   "private": true,
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "阎石《数字电子技术基础》第六版参考的原创互动教学平台",
   "scripts": {
     "test:legacy": "node tests/verify-v2.0.cjs && node tests/verify-v2.1.cjs && node tests/verify-v2.2.cjs",
