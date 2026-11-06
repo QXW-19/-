@@ -785,3 +785,22 @@ Playwright 通过 `playwright.config.cjs` 自动启动仓库自带的 Node 静�
 - 三级 3D 渲染依赖 GPU/WebGL 与 jsdelivr 等 CDN；GitHub Actions 的 Linux 无头 Chromium 若不具备条件会跳过，需以对应运行的 skipped 数量为准。
 - 主 HTML 在阶段 C 由编辑工具统一为 LF 行尾（原为 CRLF），字符数因此额外减少约 7.5 千；这是行尾归一化，不是删除教学内容。
 - 回退：本轮未改动任何存储格式、题库答案、公式或原始 51 个模块；如需回退，可 `git revert` 相应 `feat:` / `refactor:` 提交，或切回稳定基线 `feature/digital-course-v2.3`。旧版 `localStorage` 键名与数据格式保持兼容，无需迁移或清理。
+
+
+### 6. V2.4 发布前配置一致性（仍需 CI 最终确认）
+
+- `package.json`、`package-lock.json` 及锁文件根包版本统一为 `2.4.0`；仓库根目录 `index.html` 的入口展示也使用 V2.4。内部 `v20-home` 等历史路由名称不变，避免破坏深链接。
+- GitHub Actions 的 V2.4 工作流改用 `npm ci` 按锁文件安装依赖，并在浏览器测试前运行 `npm run test:release`，检查版本、入口深链接与测试脚本配置。
+- Windows VSCode 推荐在 **V2.4 项目目录**运行（不要在旧 V1.1 文件夹执行）：
+
+```powershell
+git status --short
+git branch --show-current
+npm ci
+npx playwright install chromium
+npm run test:release
+npm run test:all
+```
+
+- 此处所述为新增的发布检查配置，**不是**最新 GitHub Actions 运行通过的证明。请在 [GitHub Actions](https://github.com/QXW-19/-/actions) 查看与 V2.4 最新提交 SHA 对应的执行结果；尚未核实前不得合并到 `main` 或发布稳定版本。
+- 如无 GPU/WebGL 或 CDN 不可用，真实 3D 渲染专项测试可能明确标记 `skipped`；页面入口测试通过不代表真实渲染已完成。
