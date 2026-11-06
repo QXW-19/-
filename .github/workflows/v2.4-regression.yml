@@ -17,6 +17,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
+      - name: 锁文件可复现安装依赖
+        run: npm ci --no-audit --no-fund
       - name: 运行旧版逻辑回归
         run: npm run test:legacy
       - name: 运行 V2.3 结构兼容检查
@@ -29,8 +32,8 @@ jobs:
         run: npm run test:teaching
       - name: 检查学习闭环与重点知识点一致性
         run: npm run test:loop
-      - name: 安装 Playwright 依赖
-        run: npm install --no-audit --no-fund
+      - name: 检查 V2.4 发布元信息
+        run: npm run test:release
       - name: 安装 Chromium
         run: npx playwright install --with-deps chromium
       - name: 运行 V2.3 + V2.4 浏览器测试
