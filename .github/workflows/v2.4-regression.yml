@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/digital-course-v2.4
+      - feature/digital-course-v2.4.1
   pull_request:
   workflow_dispatch:
 

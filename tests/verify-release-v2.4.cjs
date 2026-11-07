@@ -11,8 +11,8 @@ const pkg=readJson('package.json');
 const lock=readJson('package-lock.json');
 const entry=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const checks=[
- ['项目与锁文件版本统一为 V2.4.0',()=>{
-  assert.equal(pkg.version,'2.4.0');
+ ['项目与锁文件版本统一为 V2.4.1',()=>{
+  assert.equal(pkg.version,'2.4.1');
   assert.equal(lock.version,pkg.version);
   assert.equal(lock.packages[''].version,pkg.version);
   assert.equal(lock.name,pkg.name);
