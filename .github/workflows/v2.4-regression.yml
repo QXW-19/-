@@ -6,6 +6,7 @@ on:
       - feature/digital-course-v2.4.1
       - feature/digital-course-v2.5
       - feature/digital-course-v2.5.1
+      - feature/digital-course-v2.5.2
   pull_request:
   workflow_dispatch:
 
