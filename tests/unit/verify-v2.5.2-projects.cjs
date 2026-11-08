@@ -127,6 +127,35 @@ for(const id of EG.ids){
 const chipCount=EG.ids.filter(id=>EG.get(id).chip).length;
 ok(chipCount>=12,'至少 12 节给出常见芯片要点（当前 '+chipCount+'）');
 
+/* ---------- 2d. 分层练习题库与判分 ---------- */
+vm.runInContext(fs.readFileSync(path.join(root,'assets/content/exercises/v2.5.2-exercise-bank.js'),'utf8'),sandbox,
+ {filename:'v2.5.2-exercise-bank.js'});
+const EB=sandbox.window.DigitalV252ExerciseBank;
+ok(EB&&EB.questions.length===16,'题库共 16 题（当前 '+EB.questions.length+'）');
+const es=EB.stats();
+ok(es.concept===4&&es.calc===4&&es.truth===3&&es.fault===3&&es.design===2,'五类题量符合设计');
+for(const q of EB.questions){
+ ok(typeof q.explain==='string'&&q.explain.length>=10,q.id+' 有解析');
+ ok(q.chapter>=1&&q.chapter<=8,q.id+' 关联章节合法');
+ if(q.type==='design'){
+  ok(q.requirements.length>=3&&q.checks.length===5&&q.rubric.rows.length>=3,q.id+' 设计题任务书/清单/量规齐全');
+  ok(EB.grade(q.id,0).gradable===false,q.id+' 设计题不自动判分');
+ }else if(q.type==='calc'){
+  ok(Number.isFinite(q.answer)&&Array.isArray(q.steps)&&q.steps.length>=2,q.id+' 计算题有答案与步骤');
+ }else{
+  ok(Array.isArray(q.options)&&q.options.length>=3,q.id+' 选择题至少 3 个选项');
+  ok(Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.options.length,q.id+' 正确答案下标合法');
+  ok(Array.isArray(q.feedback)&&q.feedback.length===q.options.length,q.id+' 每个选项都有定向反馈');
+ }
+}
+ok(EB.grade('e1',2).correct===true,'概念题正确选项判对');
+const wrong=EB.grade('e1',0);
+ok(wrong.correct===false&&wrong.explain.includes('位数'),'错误选项给出针对性反馈');
+ok(EB.grade('e5',465).correct===true&&EB.grade('e5',466).correct===false,'计算题按精确值判分');
+ok(EB.grade('e6',481).correct===true,'555 频率标称值判对');
+ok(EB.grade('e6',484).correct===true&&EB.grade('e6',477).correct===false,'计算题容差边界正确');
+ok(EB.grade('e7','-2').correct===true,'负号与字符串输入可解析');
+
 /* ---------- 3. 交通灯与时钟模型 ---------- */
 const P=require(path.join(root,'assets/v1.7-core.js'));
 let st=P.fresh();

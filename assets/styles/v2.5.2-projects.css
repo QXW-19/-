@@ -204,3 +204,29 @@
 .v252-eng-answer{margin-top:10px;padding:10px 12px;border-radius:8px;
   background:var(--v241-primary-soft,#e0f4f1)}
 .v252-eng-answer p{margin:0}
+
+/* ---------- V2.5.2 分层练习 ---------- */
+.v252-ex-summary{margin:8px 0 14px}
+.v252-ex-list{display:flex;flex-direction:column;gap:14px}
+.v252-ex-card{padding:14px;border-radius:12px;border:1px solid var(--v241-border,#d9e6ec);
+  background:var(--v241-surface,#fff);box-shadow:var(--v241-shadow,0 2px 10px rgba(16,42,54,.06))}
+.v252-ex-options{display:flex;flex-direction:column;gap:6px;margin:8px 0 12px}
+.v252-ex-option{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:8px;
+  border:1px solid var(--v241-border,#d9e6ec);background:var(--v241-surface-2,#f7fbfd);
+  font-size:13.5px;line-height:1.6;color:var(--v241-text-soft,#3f5c68);cursor:pointer}
+.v252-ex-option:hover{border-color:var(--v241-primary,#0d8b80)}
+.v252-ex-option input{margin-top:3px;accent-color:var(--v241-primary,#0d8b80)}
+.v252-input{flex:0 1 160px;min-width:110px;padding:8px 10px;border-radius:8px;
+  border:1px solid var(--v241-border-strong,#b9d0d9);background:var(--v241-surface,#fff);
+  color:var(--v241-text,#102a36);font:600 14px/1.4 var(--v241-font-mono,monospace)}
+.v252-input:focus-visible{outline:3px solid var(--v241-accent,#2563c9);outline-offset:1px}
+.v252-ex-feedback{margin-top:10px;padding:10px 12px;border-radius:9px;
+  background:var(--v241-surface-2,#f7fbfd);border:1px dashed var(--v241-border-strong,#b9d0d9)}
+.v252-ex-feedback p{margin:4px 0}
+.v252-ex-steps{margin:8px 0;padding-left:22px;display:flex;flex-direction:column;gap:4px;
+  font-size:13px;line-height:1.7;color:var(--v241-text-soft,#3f5c68)}
+.v252-ex-checks{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.v252-ex-check{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.7;
+  color:var(--v241-text-soft,#3f5c68);padding:7px 10px;border-radius:8px;
+  background:var(--v241-surface-2,#f7fbfd);border:1px solid var(--v241-border,#d9e6ec)}
+.v252-ex-check input{margin-top:3px;accent-color:var(--v241-primary,#0d8b80)}
