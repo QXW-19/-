@@ -9,13 +9,20 @@ module.exports=defineConfig({
   expect:{timeout:12000},
   fullyParallel:false,
   retries:process.env.CI?1:0,
-  workers:process.env.CI?1:undefined,
+  // 每个页面会创建 5 个 WebGL 上下文（五个 Three.js 场景）+ 若干 2D 画布。
+  // 12 核机器上开 6 个 worker 意味着 30 个上下文同时存活，软件光栅化下会拖慢
+  // 上下文关闭，出现「Tearing down context exceeded 45000ms」。实测 4 个 worker
+  // 既能让整轮回归保持在数分钟内，也不会让上下文数量失控。
+  workers:process.env.CI?1:4,
   reporter:process.env.CI?[['list'],['html',{open:'never'}]]:'list',
   use:{
     baseURL:'http://127.0.0.1:8001',
     browserName:'chromium',
     headless:true,
-    trace:'retain-on-failure',
+    // 只保留「动作/控制台/网络」轨迹，不录制每个动作的 DOM 快照。
+    // 全量快照会让每个用例的收尾阶段写入大量数据，是此前后台收尾超时的主因；
+    // 关闭快照后仍能在失败时定位到具体操作与报错，需要逐帧复现时可加 --trace=on。
+    trace:{mode:'retain-on-failure',snapshots:false,sources:false},
     screenshot:'only-on-failure'
   },
   webServer:{
