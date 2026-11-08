@@ -184,3 +184,23 @@
 .v252-probe:empty{display:none}
 .v252-probe{margin-top:10px}
 .v251-flash{outline:3px solid var(--v241-accent,#2563c9);outline-offset:3px;transition:outline-color 200ms}
+
+/* ---------- V2.5.2 工程师视角（讲义页第 5 个折叠块，独立类名） ---------- */
+.v252-engineer{border:1px solid var(--v241-border,#d9e6ec);border-radius:12px;margin:14px 0;
+  background:var(--v241-surface,#fff);overflow:hidden}
+.v252-engineer[open]{box-shadow:var(--v241-shadow,0 2px 10px rgba(16,42,54,.06))}
+.v252-eng-head{display:flex;gap:8px;align-items:center;padding:11px 14px;cursor:pointer;
+  font-weight:700;font-size:14px;color:var(--v241-text,#102a36);list-style:none;
+  background:var(--v241-accent-soft,#e7effd)}
+.v252-eng-head::-webkit-details-marker{display:none}
+.v252-eng-head::after{content:'展开';margin-left:auto;font-size:12px;font-weight:600;color:var(--v241-muted,#6c8794)}
+.v252-engineer[open]>.v252-eng-head::after{content:'收起'}
+.v252-eng-ico{width:8px;height:8px;border-radius:50%;background:var(--v241-accent,#2563c9);flex:none}
+.v252-eng-body{padding:6px 16px 14px}
+.v252-eng-sub{margin:14px 0 4px;font-size:13.5px;color:var(--v241-text,#102a36)}
+.v252-eng-q{margin:8px 0;padding:10px 12px;border-left:3px solid var(--v241-accent,#2563c9);
+  background:var(--v241-surface-2,#f7fbfd);border-radius:0 8px 8px 0;
+  font-size:14px;line-height:1.8;color:var(--v241-text,#102a36);font-weight:600}
+.v252-eng-answer{margin-top:10px;padding:10px 12px;border-radius:8px;
+  background:var(--v241-primary-soft,#e0f4f1)}
+.v252-eng-answer p{margin:0}

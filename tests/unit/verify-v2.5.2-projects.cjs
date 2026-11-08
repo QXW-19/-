@@ -109,6 +109,24 @@ for(const id of CL.ids){
  ok(x.entry&&['circuit','module','widget','project'].includes(x.entry.type),id+' 有交互入口');
 }
 
+/* ---------- 2c. 工程师视角 ---------- */
+vm.runInContext(fs.readFileSync(path.join(root,'assets/content/lessons/v2.5.2-engineer.js'),'utf8'),sandbox,
+ {filename:'v2.5.2-engineer.js'});
+const EG=sandbox.window.DigitalV252Engineer;
+ok(EG&&EG.count===32,'32 节都有工程师视角内容（当前 '+EG.count+'）');
+for(const id of EG.ids){
+ const x=EG.get(id);
+ ok(x.tradeoff.length>=60,id+' 的设计取舍有实质内容');
+ ok(x.question.endsWith('？'),id+' 的思考题是一个问句');
+ ok(x.hint.length>=6&&x.answer.length>=20,id+' 有提示与参考答案');
+ if(x.chip){
+  ok(x.chip.facts.length>=2,id+' 的芯片要点至少 2 条');
+  ok(/手册/.test(x.chip.note),id+' 的芯片要点提示查手册');
+ }
+}
+const chipCount=EG.ids.filter(id=>EG.get(id).chip).length;
+ok(chipCount>=12,'至少 12 节给出常见芯片要点（当前 '+chipCount+'）');
+
 /* ---------- 3. 交通灯与时钟模型 ---------- */
 const P=require(path.join(root,'assets/v1.7-core.js'));
 let st=P.fresh();
