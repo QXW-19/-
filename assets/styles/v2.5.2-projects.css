@@ -230,3 +230,21 @@
   color:var(--v241-text-soft,#3f5c68);padding:7px 10px;border-radius:8px;
   background:var(--v241-surface-2,#f7fbfd);border:1px solid var(--v241-border,#d9e6ec)}
 .v252-ex-check input{margin-top:3px;accent-color:var(--v241-primary,#0d8b80)}
+
+/* ---------- V2.5.2 计算与实测并排 ---------- */
+.v252-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.v252-compare-col{padding:10px 12px;border-radius:10px;border:1px solid var(--v241-border,#d9e6ec);
+  background:var(--v241-surface,#fff)}
+.v252-compare-col:first-child{background:var(--v241-accent-soft,#e7effd)}
+.v252-compare-col:last-child{background:var(--v241-primary-soft,#e0f4f1)}
+.v252-compare-title{margin:0 0 6px;font-size:12.5px;color:var(--v241-text,#102a36)}
+.v252-compare-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;
+  font-size:12.5px;line-height:1.65;color:var(--v241-text-soft,#3f5c68);
+  font-family:var(--v241-font-mono,monospace)}
+@media(max-width:720px){.v252-compare{grid-template-columns:1fr}}
+@media(min-width:901px){
+ .v252-aside{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}
+}
+@media(hover:none){
+ .v252-btn,.v252-chip,.v252-bit,.v252-project,.v252-step{min-height:40px}
+}

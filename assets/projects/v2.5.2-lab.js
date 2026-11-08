@@ -90,7 +90,7 @@ function makeLock(){
  const preset=[0,1,0,1]; // 下标为位号 P0~P3，即显示 1010
  const attempt=[0,0,0,0];
  const history=[];
- let host=null,readout=null,tickText=null;
+ let host=null,readout=null,tickText=null,notify=null;
  function applyPreset(){c=LK.setBits(c,ids,'p',preset);}
  function read(){return LK.read(c,ids);}
  function record(action){
@@ -112,6 +112,7 @@ function makeLock(){
   row('开锁状态 Q',String(s.unlock),s.unlock===1?'ok':'idle');
   row('错误指示',String(s.err),s.err===1?'bad':'idle');
   row('确认次数',String(s.tick),'idle');
+  if(notify)notify();
   tickText.textContent='当前预设密码 '+preset.slice().reverse().join('')+'；尝试密码 '+attempt.slice().reverse().join('')+'。改动开关不会影响 Q，只有「确认」的上升沿才采样。';
   syncButtons();
  }
@@ -128,8 +129,8 @@ function makeLock(){
    b.setAttribute('aria-pressed',String(attempt[i]===1));
   });
  }
- function mount(node){
-  host=node;host.replaceChildren();
+ function mount(node,onChange){
+  host=node;notify=onChange||null;host.replaceChildren();
   const wrap=el('div','','v252-sim');
   const presetBox=el('div','','v252-sim-group');
   presetBox.append(el('h4','预设密码（4 位拨码）'));
@@ -172,19 +173,21 @@ function makeLock(){
   c=LK.reset(c);attempt.fill(0);applyPreset();
   history.length=0;record('复位');
  }
+ /* 对外 API 按显示顺序 [P3,P2,P1,P0] 接收，内部按位号存放。 */
  function setPreset(arr){
-  arr.slice(0,4).forEach((v,i)=>{preset[i]=v?1:0;});
+  arr.slice(0,4).forEach((v,i)=>{preset[3-i]=v?1:0;});
   c=LK.setBits(c,ids,'p',preset);
   record('设置预设');
  }
  function setAttempt(arr){
-  arr.slice(0,4).forEach((v,i)=>{attempt[i]=v?1:0;});
+  arr.slice(0,4).forEach((v,i)=>{attempt[3-i]=v?1:0;});
   c=LK.setBits(c,ids,'k',attempt);
   record('设置输入');
  }
  function confirm(){c=LK.confirm(c);record('确认');return read();}
  return {id:'lock',mount,reset:resetAll,setPreset,setAttempt,confirm,dispose(){/* 无定时器 */},
   state:()=>read(),history:()=>history.slice(),
+  live:()=>{const s=read();return ['MATCH = '+s.match,'开锁 Q = '+s.unlock,'已确认 '+s.tick+' 次'];},
   traces:()=>[
    {name:'MATCH',values:history.map(h=>h.match),cls:'v252-truth'},
    {name:'Q（保持）',values:history.map(h=>h.unlock),cls:'v252-lock'},
@@ -196,7 +199,7 @@ function makeLock(){
 function makeTraffic(){
  let st=P.fresh();
  let fault=null;           // null | 'both-green' | 'skip-yellow'
- let host=null,lamps=null,readout=null,tableBody=null,timer=null,scale=1;
+ let host=null,lamps=null,readout=null,tableBody=null,timer=null,scale=1,notify=null;
  const history=[];
  function lamp(){
   const l=P.lampState(st);
@@ -251,6 +254,7 @@ function makeTraffic(){
    if(!diag.length)box.append(el('p','当前输出组合合法：两个方向没有同时绿，且每次切换都经过黄灯与全红。','v252-ok-text'));
    diag.forEach(d=>box.append(el('p','⚠ '+d,'v252-bad-text')));
   }
+  if(notify)notify();
  }
  function record(){
   const l=lamp();
@@ -282,8 +286,8 @@ function makeTraffic(){
   }
   render();
  }
- function mount(node){
-  host=node;host.replaceChildren();
+ function mount(node,onChange){
+  host=node;notify=onChange||null;host.replaceChildren();
   const wrap=el('div','','v252-sim');
   lamps=el('div','','v252-lamps');wrap.append(lamps);
   const acts=el('div','','v252-row');
@@ -321,6 +325,7 @@ function makeTraffic(){
  }
  return {id:'traffic',mount,step,start,stop,reset,inject,diagnose,dispose:stop,
   state:()=>{const l=lamp();return {phase:l.phase,ns:l.ns,ew:l.ew,remaining:l.remaining,elapsed:st.traffic.elapsed,cycles:st.traffic.cycles,fault};},
+  live:()=>{const l=lamp();return ['相位 '+l.phase,'剩余 '+l.remaining+' s','双向绿：'+(l.ns==='green'&&l.ew==='green'?'是（冲突）':'否')];},
   history:()=>history.slice(),
   traces:()=>[
    {name:'南北绿',values:history.map(h=>h.ns_g),cls:'v252-truth'},
@@ -333,7 +338,7 @@ function makeTraffic(){
 /* ========================== 项目三：数字时钟 ========================== */
 function makeClock(){
  let st=P.fresh();
- let host=null,display=null,readout=null,timer=null,mode='24';
+ let host=null,display=null,readout=null,timer=null,mode='24',notify=null;
  const history=[];
  function pad(n){return String(n).padStart(2,'0');}
  function view(){
@@ -372,6 +377,7 @@ function makeClock(){
    item('已走步数',String(st.clock.elapsed));
    item('历史记录',st.clock.history.length+' 条');
   }
+  if(notify)notify();
  }
  function step(){
   const before=st.clock;
@@ -397,8 +403,8 @@ function makeClock(){
  function addHour(){stop();st=P.setTime(st,(st.clock.hour+1)%24,st.clock.minute,st.clock.second);render();}
  function reset(){stop();st=P.fresh();history.length=0;render();}
  function setMode(m){mode=m;render();}
- function mount(node){
-  host=node;host.replaceChildren();
+ function mount(node,onChange){
+  host=node;notify=onChange||null;host.replaceChildren();
   const wrap=el('div','','v252-sim');
   display=el('div','','v252-clockface');wrap.append(display);
   const acts=el('div','','v252-row');
@@ -426,6 +432,7 @@ function makeClock(){
  }
  return {id:'clock',mount,step,start,stop,reset,setAt,addMinute,addHour,setMode,dispose:stop,
   state:()=>Object.assign(view(),{elapsed:st.clock.elapsed,mode}),
+  live:()=>{const v=view();return ['24h '+v.text24,'12h '+v.h12+':'+v.mm+':'+v.ss+' '+v.suffix,'已走 '+st.clock.elapsed+' 秒'];},
   history:()=>history.slice(),
   traces:()=>[
    {name:'秒进位',values:history.map(h=>h.sec),cls:'v252-truth'},
@@ -438,7 +445,7 @@ function makeClock(){
 /* =========================== 项目四：ADC =========================== */
 function makeAdc(){
  let bits=10,vref=3.3,vin=1.0;
- let host=null,readout=null,chart=null,compare=null;
+ let host=null,readout=null,chart=null,compare=null,notify=null;
  const history=[];
  function calc(){
   const r=A.adc(bits,vref,vin);
@@ -462,6 +469,7 @@ function makeAdc(){
   }
   drawChart(r);
   if(compare)renderCompare();
+  if(notify)notify();
   const note=host.querySelector('.v252-adc-note');
   if(note)note.textContent='当前 '+bits+' 位、Vref='+vref.toFixed(2)+' V，共 '+(r.max+1)+' 个码；输入 '+vin.toFixed(3)+' V 对应码值 '+r.code+'。';
  }
@@ -516,8 +524,8 @@ function makeAdc(){
  function setVref(v){vref=Math.max(1,Math.min(5,v));if(vin>vref)vin=vref;record();render();}
  function setVin(v){vin=Math.max(0,Math.min(vref,v));record();render();}
  function reset(){bits=10;vref=3.3;vin=1.0;history.length=0;render();}
- function mount(node){
-  host=node;host.replaceChildren();
+ function mount(node,onChange){
+  host=node;notify=onChange||null;host.replaceChildren();
   const wrap=el('div','','v252-sim');
   const controls=el('div','','v252-sim-group');
   controls.append(el('h4','分辨率'));
@@ -556,6 +564,7 @@ function makeAdc(){
  }
  return {id:'adc',mount,setBits,setVref,setVin,reset,dispose(){/* 无定时器 */},
   state:()=>Object.assign({bits,vref,vin},calc()),
+  live:()=>{const r=calc();return ['Δ = '+(r.step*1000).toFixed(4)+' mV','Code = '+r.code+'（'+r.binary+'）','误差 = '+(r.error*1000).toFixed(3)+' mV'];},
   history:()=>history.slice(),
   traces:()=>[
    {name:'输入 ≥ 中点',values:history.map(h=>h.vin>=vref/2?1:0),cls:'v252-truth'},
@@ -646,10 +655,27 @@ function renderContent(){
  }else if(key==='sim'){
   (stepData.paras||[]).forEach(p=>body.append(el('p',p,'v252-p')));
   const host2=el('div','','v252-simhost');
+  // 计算结果与实时结果并排，便于对照「公式说的」与「电路跑出来的」。
+  const liveList=el('ul','','v252-compare-list');
+  if(stepData.calc){
+   const cmp=el('div','','v252-compare');
+   const left=el('div','','v252-compare-col');
+   left.append(el('h4','计算 / 规则','v252-compare-title'));
+   const cl=el('ul','','v252-compare-list');
+   stepData.calc.forEach(t=>cl.append(el('li',t)));
+   left.append(cl);
+   const right=el('div','','v252-compare-col');
+   right.append(el('h4','实时结果','v252-compare-title'),liveList);
+   cmp.append(left,right);
+   body.append(cmp);
+  }
   body.append(host2);
   body.append(el('p',stepData.hint,'v252-hint'));
   host.append(body);
-  ctrl.mount(host2);
+  ctrl.mount(host2,()=>{
+   liveList.replaceChildren();
+   (typeof ctrl.live==='function'?ctrl.live():[]).forEach(t=>liveList.append(el('li',t)));
+  });
   return;
  }else if(key==='wave'){
   (stepData.paras||[]).forEach(p=>body.append(el('p',p,'v252-p')));
