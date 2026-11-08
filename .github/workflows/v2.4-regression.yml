@@ -4,6 +4,7 @@ on:
     branches:
       - feature/digital-course-v2.4
       - feature/digital-course-v2.4.1
+      - feature/digital-course-v2.5
   pull_request:
   workflow_dispatch:
 
@@ -37,6 +38,8 @@ jobs:
         run: npm run test:release
       - name: 检查 V2.4.1 工程结构与设计系统
         run: npm run test:v241
+      - name: 运行 V2.5 电路仿真单元测试
+        run: npm run test:unit
       - name: 安装 Chromium
         run: npx playwright install --with-deps chromium
       - name: 运行 V2.3 + V2.4 浏览器测试

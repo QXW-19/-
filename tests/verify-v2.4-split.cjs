@@ -27,9 +27,9 @@ const BATCH=[
 ];
 
 const tags=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
-// 基线 71 个脚本标签；V2.4 学习闭环 +1（72），V2.4.1 UI/学习闭环/实验增强 +3（75）。
+// 基线 71 个脚本标签；V2.4 学习闭环 +1（72），V2.4.1 UI/学习闭环/实验增强 +3（75），V2.5 实验室/波形 +4（79），3D 控制/生命周期 +2（81），课程联动 +1（82）。
 // 这里仍固定总数，任何批量 defer/async 化或脚本位置变动都会被发现。
-ok(tags.length===75,'脚本标签总数保持 75 个（原 71 + V2.4 学习闭环 + V2.4.1 三个模块）');
+ok(tags.length===79,'脚本标签总数保持 79 个（原 75 + V2.5 四个实验模块）');
 
 const inlineBodies=tags.filter(t=>!/\bsrc\s*=/.test(t[1])).map(t=>t[2]);
 const allSrc=tags.map(t=>(t[1].match(/\bsrc\s*=\s*["']([^"']+)["']/i)||[])[1]).filter(Boolean);

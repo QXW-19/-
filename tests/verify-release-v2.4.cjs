@@ -11,8 +11,8 @@ const pkg=readJson('package.json');
 const lock=readJson('package-lock.json');
 const entry=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const checks=[
- ['项目与锁文件版本统一为 V2.4.1',()=>{
-  assert.equal(pkg.version,'2.4.1');
+ ['项目与锁文件版本统一为 V2.5.0',()=>{
+  assert.equal(pkg.version,'2.5.0');
   assert.equal(lock.version,pkg.version);
   assert.equal(lock.packages[''].version,pkg.version);
   assert.equal(lock.name,pkg.name);
@@ -23,9 +23,9 @@ const checks=[
   assert.equal(lock.packages[''].devDependencies['@playwright/test'],pkg.devDependencies['@playwright/test']);
   assert.ok(lock.packages['node_modules/@playwright/test']?.version);
  }],
- ['入口页面显示 V2.4 并保留深链接',()=>{
-  assert.match(entry,/<title>[^<]*V2\.4[^<]*<\/title>/);
-  assert.match(entry,/<h1>[^<]*V2\.4[^<]*<\/h1>/);
+ ['入口页面显示 V2.5 并保留深链接',()=>{
+  assert.match(entry,/<title>[^<]*V2\.5[^<]*<\/title>/);
+  assert.match(entry,/<h1>[^<]*V2\.5[^<]*<\/h1>/);
   assert.match(entry,/window\.location\.replace/);
   assert.match(entry,/window\.location\.hash/);
  }],

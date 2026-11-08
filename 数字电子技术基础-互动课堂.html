@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="assets/v2.1.css">
 <link rel="stylesheet" href="assets/v2.2.css">
 <link rel="stylesheet" href="assets/v2.4.1-design.css">
+<link rel="stylesheet" href="assets/styles/v2.5-lab.css">
 </head>
 <body>
 <div class="app">
@@ -3893,6 +3894,19 @@
         if (!running){ running = true; clock.getDelta(); loop(); }
       };
 
+      /* V2.5：把本场景的相机/渲染循环交给统一控制器，不改动原有渲染逻辑。 */
+      if (window.DigitalV25Scenes) window.DigitalV25Scenes.register('w1', {
+        id: 'w1', camera: camera, renderer: renderer, scene: scene, host: host,
+        defaults: { r: tar.r, th: tar.th, ph: tar.ph },
+        limits: { min: 130, max: 330 },
+        getTarget: function(){ return tar; },
+        getSpherical: function(){ return sph; },
+        applyCam: applyCam, resize: resize,
+        isRunning: function(){ return running; },
+        start: function(){ if (window.onShow_w1) window.onShow_w1(); },
+        stop: function(){ running = false; }
+        , setAuto: function(v){ if (typeof setAuto === "function") setAuto(v); }
+      });
       setAuto(true);
       resize();
       if (document.getElementById("w1").classList.contains("active")) window.onShow_w1();
@@ -4205,6 +4219,19 @@
         renderer.setSize(w, h);
       }
       window.addEventListener("resize", resize);
+      /* V2.5：把本场景的相机/渲染循环交给统一控制器，不改动原有渲染逻辑。 */
+      if (window.DigitalV25Scenes) window.DigitalV25Scenes.register('w2', {
+        id: 'w2', camera: camera, renderer: renderer, scene: scene, host: host,
+        defaults: { r: tar.r, th: tar.th, ph: tar.ph },
+        limits: { min: 48, max: 140 },
+        getTarget: function(){ return tar; },
+        getSpherical: function(){ return sph; },
+        applyCam: applyCam, resize: resize,
+        isRunning: function(){ return running; },
+        start: function(){ if (window.onShow_w2) window.onShow_w2(); },
+        stop: function(){ running = false; }
+
+      });
       window.onShow_w2 = function(){ resize(); if (!running){ running = true; clock.getDelta(); loop(); } };
 
       reset();
@@ -4518,6 +4545,19 @@
         renderer.setSize(w, h);
       }
       window.addEventListener("resize", resize);
+      /* V2.5：把本场景的相机/渲染循环交给统一控制器，不改动原有渲染逻辑。 */
+      if (window.DigitalV25Scenes) window.DigitalV25Scenes.register('w3', {
+        id: 'w3', camera: camera, renderer: renderer, scene: scene, host: host,
+        defaults: { r: tar.r, th: tar.th, ph: tar.ph },
+        limits: { min: 70, max: 200 },
+        getTarget: function(){ return tar; },
+        getSpherical: function(){ return sph; },
+        applyCam: applyCam, resize: resize,
+        isRunning: function(){ return running; },
+        start: function(){ if (window.onShow_w3) window.onShow_w3(); },
+        stop: function(){ running = false; }
+
+      });
       window.onShow_w3 = function(){ resize(); if (!running){ running = true; clock.getDelta(); loop(); } };
 
       setVin(0);
@@ -4877,6 +4917,19 @@
         renderer.setSize(w, h);
       }
       window.addEventListener("resize", resize);
+      /* V2.5：把本场景的相机/渲染循环交给统一控制器，不改动原有渲染逻辑。 */
+      if (window.DigitalV25Scenes) window.DigitalV25Scenes.register('w4', {
+        id: 'w4', camera: camera, renderer: renderer, scene: scene, host: host,
+        defaults: { r: tar.r, th: tar.th, ph: tar.ph },
+        limits: { min: 60, max: 170 },
+        getTarget: function(){ return tar; },
+        getSpherical: function(){ return sph; },
+        applyCam: applyCam, resize: resize,
+        isRunning: function(){ return running; },
+        start: function(){ if (window.onShow_w4) window.onShow_w4(); },
+        stop: function(){ running = false; }
+
+      });
       window.onShow_w4 = function(){ resize(); if (!running){ running = true; clock.getDelta(); loop(); } };
 
       recompute();
@@ -5196,6 +5249,19 @@
         renderer.setSize(w, h);
       }
       window.addEventListener("resize", resize);
+      /* V2.5：把本场景的相机/渲染循环交给统一控制器，不改动原有渲染逻辑。 */
+      if (window.DigitalV25Scenes) window.DigitalV25Scenes.register('w5', {
+        id: 'w5', camera: camera, renderer: renderer, scene: scene, host: host,
+        defaults: { r: tar.r, th: tar.th, ph: tar.ph },
+        limits: { min: 52, max: 150 },
+        getTarget: function(){ return tar; },
+        getSpherical: function(){ return sph; },
+        applyCam: applyCam, resize: resize,
+        isRunning: function(){ return running; },
+        start: function(){ if (window.onShow_w5) window.onShow_w5(); },
+        stop: function(){ running = false; }
+
+      });
       window.onShow_w5 = function(){ resize(); if (!running){ running = true; clock.getDelta(); loop(); } };
 
       refresh();
@@ -6387,5 +6453,9 @@
 <script src="assets/v2.4.1-ui.js" defer></script>
 <script src="assets/v2.4.1-learning.js" defer></script>
 <script src="assets/v2.4.1-labs.js" defer></script>
+<script src="assets/labs/examples/v2.5-examples.js" defer></script>
+<script src="assets/labs/circuit-renderer/v2.5-signals.js" defer></script>
+<script src="assets/labs/waveform-analyzer/v2.5-waveform.js" defer></script>
+<script src="assets/labs/circuit-editor/v2.5-lab.js" defer></script>
 </body>
 </html>
