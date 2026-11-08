@@ -67,23 +67,30 @@ test('案例库可按章筛选、搜索，并展示十三部分',async({page})=>
   await home(page);
   await page.evaluate(()=>window.show('v251-cases'));
   await expect(page.locator('#v251-cases')).toHaveClass(/active/);
-  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(3);
+  const total=await page.evaluate(()=>window.DigitalV251Content.cases.length);
+  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(total);
 
+  // 已收录案例的章节才显示筛选按钮；点击后只保留该章案例。
+  const ch2=page.locator('#v251-cases .v251-chip',{hasText:'第 2 章'});
+  await expect(ch2).toHaveCount(1);
+  await ch2.click();
+  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(3);
   await page.locator('#v251-cases .v251-chip',{hasText:'全部章节'}).click();
-  // 未收录案例的章节不显示筛选按钮，避免出现空列表。
-  await expect(page.locator('#v251-cases .v251-chip',{hasText:'第 2 章'})).toHaveCount(0);
+  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(total);
+  // 未收录案例的章节不出现空列表入口。
+  await expect(page.locator('#v251-cases .v251-chip',{hasText:'第 8 章'})).toHaveCount(0);
   const search=page.locator('#v251-cases .v251-search');
   await search.fill('格雷码');
   await expect(page.locator('#v251-cases .v251-card')).toHaveCount(1);
   await search.fill('');
-  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(3);
+  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(total);
 
   await page.locator('#v251-cases .v251-card button',{hasText:'查看案例'}).first().click();
   await expect(page.locator('#v251-cases .v251-detail')).toBeVisible();
   await expect(page.locator('#v251-cases .v251-part')).toHaveCount(13);
   await expect(page.locator('#v251-cases .v251-part-title').first()).toContainText('案例背景');
   await page.locator('#v251-cases button',{hasText:'返回案例列表'}).click();
-  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(3);
+  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(total);
   expect(errors).toEqual([]);
 });
 
@@ -129,4 +136,32 @@ test('窄屏 375px 下案例详情不产生横向溢出',async({page})=>{
   await expect(page.locator('#v251-cases .v251-part')).toHaveCount(13);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('第二章深读与两个门电路案例同样可用',async({page})=>{
+  const errors=watch(page);
+  await home(page);
+  for(const id of ['l2-1','l2-2','l2-3','l2-4']){
+    await lesson(page,id);
+    await expect(page.locator('#v18-school .v251-deep'),id).toHaveCount(4,{timeout:8000});
+  }
+  await expect(page.locator('#v251-cases .v251-card')).toHaveCount(await page.evaluate(()=>window.DigitalV251Content.cases.length));
+
+  // 三人表决器：3 开关 + 3 与门 + 2 或门 + 1 LED
+  await page.evaluate(()=>window.DigitalV251ContentUI.openCase('case-2-1'));
+  await page.locator('#v251-cases button',{hasText:'打开实验'}).click();
+  await expect(page.locator('#v25-lab')).toHaveClass(/active/);
+  let c=await page.evaluate(()=>window.DigitalV25Lab.getCircuit());
+  expect(c.nodes.filter(n=>n.type==='AND').length).toBe(3);
+  expect(c.nodes.filter(n=>n.type==='OR').length).toBe(2);
+  expect(c.wires.length).toBe(11);
+
+  // 与非门异或：恰好 4 个 NAND，无其它门
+  await page.evaluate(()=>window.DigitalV251ContentUI.openCase('case-2-2'));
+  await page.locator('#v251-cases button',{hasText:'打开实验'}).click();
+  c=await page.evaluate(()=>window.DigitalV25Lab.getCircuit());
+  expect(c.nodes.filter(n=>n.type==='NAND').length).toBe(4);
+  expect(c.nodes.filter(n=>['AND','OR','XOR','NOR'].includes(n.type)).length).toBe(0);
+  expect(c.wires.length).toBe(9);
+  expect(errors).toEqual([]);
 });

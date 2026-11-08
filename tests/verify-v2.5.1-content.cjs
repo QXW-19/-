@@ -22,10 +22,13 @@ function ok(cond,label){
 /* ---------- 载入内容数据（纯数据文件，不依赖 DOM） ---------- */
 const sandbox={console:{log(){},error(){}},window:{}};
 vm.createContext(sandbox);
+const LESSON_DIR=path.join(root,'assets/content/lessons');
+const CASE_DIR=path.join(root,'assets/content/cases');
+const chapterFiles=dir=>fs.readdirSync(dir).filter(f=>/^ch\d{2}\.js$/.test(f)).sort();
 const FILES=[
  'assets/content/v2.5.1-content-core.js',
- 'assets/content/lessons/ch01.js',
- 'assets/content/cases/ch01.js'
+ ...chapterFiles(LESSON_DIR).map(f=>'assets/content/lessons/'+f),
+ ...chapterFiles(CASE_DIR).map(f=>'assets/content/cases/'+f)
 ];
 for(const f of FILES){
  vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),sandbox,{filename:f});
@@ -34,7 +37,15 @@ const C=sandbox.window.DigitalV251Content;
 ok(C&&C.version==='2.5.1','内容注册中心已加载且版本为 2.5.1');
 
 const lessons=C.lessonIds();
-ok(lessons.length===4,'第一章四节深读讲义全部注册（当前 '+lessons.length+'）');
+const chapterNums=[...new Set(lessons.map(id=>Number(id.split('-')[0].slice(1))))].sort((a,b)=>a-b);
+ok(chapterNums.length>=1,'至少已注册一章深读讲义');
+for(const ch of chapterNums){
+ const ids=lessons.filter(id=>Number(id.split('-')[0].slice(1))===ch);
+ ok(ids.length===4,'第 '+ch+' 章四节深读讲义齐全（当前 '+ids.length+' 节）');
+ ok(C.casesOf(ch).length>=2,'第 '+ch+' 章至少 2 个实用案例（当前 '+C.casesOf(ch).length+' 个）');
+}
+ok(chapterNums.length===new Set(chapterFiles(LESSON_DIR).map(f=>Number(f.slice(2,4)))).size,
+ '讲义文件与已注册章节一一对应');
 
 /* ---------- 1. 结构 ---------- */
 const text=v=>typeof v==='string'?v:(Array.isArray(v)?v.join(''):'');
@@ -169,4 +180,42 @@ for(const r of c3.table.rows){
 const minus8=c3.table.rows.some(r=>r[0]==='−8−1'&&r[7]==='溢出');
 ok(minus8,'案例 1-3 覆盖 −8−1 的下溢情形');
 
-console.log('V2.5.1 第一章教学内容共 '+count+' 项检查通过（章节 '+lessons.length+' 节 / 案例 '+cases.length+' 个）。');
+/* ---------- 7. 第二章：多数表决真值表复算 ---------- */
+const c21=C.caseById('case-2-1');
+ok(c21.table.rows.length===8,'案例 2-1 列出三变量全部 8 行');
+for(const r of c21.table.rows){
+ const [a,b,cc]=r.map(Number);
+ const f=Number(r[4]);
+ ok(f===((a+b+cc)>=2?1:0),'案例 2-1 的 '+r.slice(0,3).join('')+' 行输出正确');
+ ok(Number(r[3])===a+b+cc,'案例 2-1 的同意人数字段正确');
+}
+
+/* ---------- 8. 第二章：与非门异或的中间节点复算 ---------- */
+const c22=C.caseById('case-2-2');
+for(const r of c22.table.rows){
+ const a=Number(r[0]),b=Number(r[1]);
+ const n1=1-(a&b),n2=1-(a&n1),n3=1-(b&n1),y=1-(n2&n3);
+ ok(Number(r[2])===n1,'案例 2-2 的 N1 正确');
+ ok(Number(r[3])===n2,'案例 2-2 的 N2 正确');
+ ok(Number(r[4])===n3,'案例 2-2 的 N3 正确');
+ ok(Number(r[5])===y,'案例 2-2 的 Y 与异或真值一致');
+}
+
+/* ---------- 9. 第二章：无关项化简 ---------- */
+const c23=C.caseById('case-2-3');
+const floorRows=c23.table.rows;
+ok(floorRows.length===16,'案例 2-3 列出 16 行（含 6 个无关项）');
+for(const r of floorRows){
+ const n=parseInt(r[0],2);
+ const f=r[2];
+ if(n>=5&&n<=9)ok(f==='1','案例 2-3 的楼层 '+n+' 应输出 1');
+ else if(n<=4)ok(f==='0','案例 2-3 的楼层 '+n+' 应输出 0');
+ else ok(f==='×','案例 2-3 的非法码 '+n+' 标记为无关项');
+ // 表达式 F = B3 + B2·(B1+B0) 对 0~9 逐行回代
+ const b3=(n>>3)&1,b2=(n>>2)&1,b1=(n>>1)&1,b0=n&1;
+ const expr=b3||(b2&&(b1||b0))?1:0;
+ if(n<=9)ok(String(expr)===f,'案例 2-3 的表达式对楼层 '+n+' 成立');
+}
+
+console.log('V2.5.1 教学内容共 '+count+' 项检查通过（章节 '+(chapterNums.join('/')||'—')+
+ '，讲义 '+lessons.length+' 节，案例 '+C.cases.length+' 个）。');

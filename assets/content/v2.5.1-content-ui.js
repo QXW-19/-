@@ -450,14 +450,58 @@ function buildGray4(){
  M.validate(c);
  return c;
 }
+/* 案例 2-1：三人表决器 F=AB+AC+BC，用二输入门级联。 */
+function buildMajority(){
+ const M=root.DigitalMixedCircuit;
+ if(!M)return null;
+ let c=M.empty();
+ const put=(type,x,y)=>{c=M.add(c,type,x,y);return c.nodes[c.nodes.length-1].id;};
+ const wire=(a,o,b,i)=>{c=M.connect(c,a,o,b,i);};
+ const a=put('SWITCH',40,60),b=put('SWITCH',40,240),cc=put('SWITCH',40,420);
+ const ab=put('AND',280,60),ac=put('AND',280,260),bc=put('AND',280,460);
+ const or1=put('OR',520,150),or2=put('OR',740,310);
+ const led=put('LED',940,310);
+ wire(a,0,ab,0);wire(b,0,ab,1);
+ wire(a,0,ac,0);wire(cc,0,ac,1);
+ wire(b,0,bc,0);wire(cc,0,bc,1);
+ wire(ab,0,or1,0);wire(ac,0,or1,1);
+ wire(bc,0,or2,0);wire(or1,0,or2,1);
+ wire(or2,0,led,0);
+ M.validate(c);
+ return c;
+}
+/* 案例 2-2：4 个与非门实现异或。 */
+function buildXor4Nand(){
+ const M=root.DigitalMixedCircuit;
+ if(!M)return null;
+ let c=M.empty();
+ const put=(type,x,y)=>{c=M.add(c,type,x,y);return c.nodes[c.nodes.length-1].id;};
+ const wire=(a,o,b,i)=>{c=M.connect(c,a,o,b,i);};
+ const a=put('SWITCH',40,100),b=put('SWITCH',40,320);
+ const n1=put('NAND',280,70),n2=put('NAND',540,70),n3=put('NAND',540,320),n4=put('NAND',800,190);
+ const led=put('LED',1000,190);
+ wire(a,0,n1,0);wire(b,0,n1,1);
+ wire(a,0,n2,0);wire(n1,0,n2,1);
+ wire(b,0,n3,0);wire(n1,0,n3,1);
+ wire(n2,0,n4,0);wire(n3,0,n4,1);
+ wire(n4,0,led,0);
+ M.validate(c);
+ return c;
+}
+const BUILDERS={gray4:buildGray4,majority:buildMajority,xor4nand:buildXor4Nand};
+const BUILDER_MSG={
+ gray4:'案例 1-2：4 位二进制 → 格雷码转换器',
+ majority:'案例 2-1：三人表决器 F = AB + AC + BC',
+ xor4nand:'案例 2-2：4 个与非门实现异或'
+};
 function openExample(id){
  const lab=root.DigitalV25Lab;
  if(!lab){alert('实验模块尚未加载完成，请稍后重试。');return false;}
- if(id==='gray4'){
-  const c=buildGray4();
+ if(BUILDERS[id]){
+  const c=BUILDERS[id]();
   if(!c)return false;
   if(typeof root.show==='function')root.show('v25-lab');
-  lab.loadCircuit(c,'案例 1-2：4 位二进制 → 格雷码转换器');
+  lab.loadCircuit(c,BUILDER_MSG[id]||'案例电路');
   return true;
  }
  if(typeof lab.openCase==='function')return lab.openCase(id);
