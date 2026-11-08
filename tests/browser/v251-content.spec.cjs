@@ -77,8 +77,10 @@ test('案例库可按章筛选、搜索，并展示十三部分',async({page})=>
   await expect(page.locator('#v251-cases .v251-card')).toHaveCount(3);
   await page.locator('#v251-cases .v251-chip',{hasText:'全部章节'}).click();
   await expect(page.locator('#v251-cases .v251-card')).toHaveCount(total);
-  // 未收录案例的章节不出现空列表入口。
-  await expect(page.locator('#v251-cases .v251-chip',{hasText:'第 8 章'})).toHaveCount(0);
+  // 八章都有案例，筛选按钮应逐章出现，且不出现空列表。
+  for(let ch=1;ch<=8;ch++){
+    await expect(page.locator('#v251-cases .v251-chip',{hasText:'第 '+ch+' 章'})).toHaveCount(1);
+  }
   const search=page.locator('#v251-cases .v251-search');
   await search.fill('格雷码');
   await expect(page.locator('#v251-cases .v251-card')).toHaveCount(1);
@@ -87,6 +89,7 @@ test('案例库可按章筛选、搜索，并展示十三部分',async({page})=>
 
   await page.locator('#v251-cases .v251-card button',{hasText:'查看案例'}).first().click();
   await expect(page.locator('#v251-cases .v251-detail')).toBeVisible();
+  await expect(page.locator('#v251-cases .v251-case-grid')).toBeHidden();
   await expect(page.locator('#v251-cases .v251-part')).toHaveCount(13);
   await expect(page.locator('#v251-cases .v251-part-title').first()).toContainText('案例背景');
   await page.locator('#v251-cases button',{hasText:'返回案例列表'}).click();
@@ -198,4 +201,33 @@ test('第四章全加器案例能载入 5 个门并保留两位输出',async({pa
   expect(c.nodes.filter(n=>n.type==='OR').length).toBe(1);
   expect(c.nodes.filter(n=>n.type==='LED').length).toBe(2);
   expect(c.wires.length).toBe(12);
+});
+
+test('32 节讲义全部注入四块深读内容且无 JavaScript 错误',async({page})=>{
+  test.setTimeout(150000);
+  const errors=watch(page);
+  await home(page);
+  for(let ch=1;ch<=8;ch++)for(let i=1;i<=4;i++){
+    const id='l'+ch+'-'+i;
+    await lesson(page,id);
+    await expect(page.locator('#v18-school .v251-deep'),id).toHaveCount(4,{timeout:8000});
+    const intro=await page.locator('#v18-school .v251-deep[open] .v251-deep-body').innerText();
+    expect(intro.length,id+' 的零基础引入应有实质内容').toBeGreaterThan(60);
+  }
+  expect(errors).toEqual([]);
+});
+
+test('综合项目入口、四个项目卡片与八部分详情',async({page})=>{
+  const errors=watch(page);
+  await home(page);
+  await expect(page.locator('.nav-item[data-mod="v251-projects"]')).toHaveCount(1);
+  await page.evaluate(()=>window.show('v251-projects'));
+  await expect(page.locator('#v251-projects')).toHaveClass(/active/);
+  await expect(page.locator('#v251-projects .v251-card')).toHaveCount(4);
+  await page.locator('#v251-projects .v251-card button',{hasText:'查看项目'}).first().click();
+  await expect(page.locator('#v251-projects .v251-case-grid')).toBeHidden();
+  await expect(page.locator('#v251-projects .v251-part')).toHaveCount(8);
+  await expect(page.locator('#v251-projects .v251-part-title').last()).toContainText('交付自评');
+  await expect(page.locator('#v251-projects .v251-table').first().locator('tbody tr')).toHaveCount(5);
+  expect(errors).toEqual([]);
 });

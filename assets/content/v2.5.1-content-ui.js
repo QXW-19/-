@@ -122,7 +122,9 @@ function injectLesson(){
  const all=()=>[...p.querySelectorAll('.v251-deep')];
  tools.append(button('全部展开',()=>all().forEach(d=>{d.open=true;}),'v251-btn soft'),
   button('全部收起',()=>all().forEach(d=>{d.open=false;}),'v251-btn soft'));
- theory.insertBefore(tools,theory.firstChild);
+ const h2=theory.querySelector('h2');
+ if(h2)theory.insertBefore(tools,h2.nextSibling);
+ else theory.insertBefore(tools,theory.firstChild);
 
  const beginner=fold('beginner','零基础引入 · 先建立一个直觉',data.beginner,true);
  const principle=fold('principle','深入原理 · 为什么必须这样定义',data.principle,false);
@@ -583,8 +585,11 @@ function openProject(id){
  frag.append(button('← 返回项目列表',()=>{
   sec.querySelector('.v251-case-grid').hidden=false;detail.hidden=true;
  },'v251-btn soft'));
- frag.append(el('h2',p.title,'v251-detail-title'));
- frag.append(el('p','目标：'+p.goal,'v251-detail-goal'));
+ const head=el('div','','v251-detail-head');
+ head.append(el('div',(p.level||'综合项目')+' · 建议 4 课时','v251-badge'));
+ head.append(el('h2',p.title,'v251-detail-title'));
+ head.append(el('p','目标：'+p.goal,'v251-detail-goal'));
+ frag.append(head);
  const body=el('div','','v251-detail-body');
  [['bg','一、项目背景与最终形态'],['spec','二、指标与验收标准'],['block','三、系统框图与模块划分'],
   ['plan','四、阶段计划与里程碑'],['detail','五、关键模块设计'],['integration','六、联调顺序与排错'],

@@ -28,7 +28,8 @@ const chapterFiles=dir=>fs.readdirSync(dir).filter(f=>/^ch\d{2}\.js$/.test(f)).s
 const FILES=[
  'assets/content/v2.5.1-content-core.js',
  ...chapterFiles(LESSON_DIR).map(f=>'assets/content/lessons/'+f),
- ...chapterFiles(CASE_DIR).map(f=>'assets/content/cases/'+f)
+ ...chapterFiles(CASE_DIR).map(f=>'assets/content/cases/'+f),
+ 'assets/content/projects/v2.5.1-projects.js'
 ];
 for(const f of FILES){
  vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),sandbox,{filename:f});
@@ -217,5 +218,23 @@ for(const r of floorRows){
  if(n<=9)ok(String(expr)===f,'案例 2-3 的表达式对楼层 '+n+' 成立');
 }
 
+/* ---------- 10. 四个综合项目 ---------- */
+ok(C.projects.length===4,'综合项目共 4 个（当前 '+C.projects.length+'）');
+const PROJECT_KEYS=C.PROJECT_PARTS.map(p=>p.key);
+ok(PROJECT_KEYS.length===8,'项目固定为八部分');
+for(const p of C.projects){
+ for(const k of PROJECT_KEYS){
+  const v=p[k];
+  const present=typeof v==='string'?v.trim().length>0
+   :(Array.isArray(v)?v.length>0:(v&&typeof v==='object'));
+  ok(present,p.id+' 的第 '+k+' 部分存在');
+ }
+ ok(p.spec.length>=4,p.id+' 指标表至少 4 行');
+ ok(p.test.length>=5,p.id+' 测试记录至少 5 行');
+ ok(p.plan.length>=3,p.id+' 阶段计划至少 3 条');
+ ok(p.review.length>=3,p.id+' 自评量规至少 3 级');
+ ok(!PLACEHOLDER.test(JSON.stringify(p)),p.id+' 不含占位文字');
+}
+
 console.log('V2.5.1 教学内容共 '+count+' 项检查通过（章节 '+(chapterNums.join('/')||'—')+
- '，讲义 '+lessons.length+' 节，案例 '+C.cases.length+' 个）。');
+ '，讲义 '+lessons.length+' 节，案例 '+C.cases.length+' 个，项目 '+C.projects.length+' 个）。');
