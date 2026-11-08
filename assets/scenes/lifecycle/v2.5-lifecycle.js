@@ -13,7 +13,7 @@
 const Scenes=root.DigitalV25Scenes;
 if(!Scenes)return;
 const watched=new Map();
-let observer=null,mutation=null,contextHandlers=0,disposed=false;
+let observer=null,mutation=null,contextHandlers=0,contextListeners=0,disposed=false;
 const activeBefore=new Set();
 
 function message(id,text,bad){
@@ -52,7 +52,8 @@ function onRegister(id,api){
   canvas.addEventListener('webglcontextrestored',restored);
   entry.listeners.push({node:canvas,type:'webglcontextlost',fn:lost},
    {node:canvas,type:'webglcontextrestored',fn:restored});
-  contextHandlers++;
+  contextHandlers++;        // 已绑定上下文监听的场景数（每场景一组）
+  contextListeners+=2;      // lost + restored 两个具体监听
  }
  // 若 CDN 未加载导致画布迟迟未创建，给出降级说明（不声称渲染成功）。
  setTimeout(()=>{
@@ -78,12 +79,13 @@ function syncActivation(){
    activeBefore.add(id);
    if(!item.api.isRunning())item.api.start();
    Scenes.updateStatus(id);
-  }else if(!active&&activeBefore.has(id)){
-   activeBefore.delete(id);
-   item.api.stop();
+  }else if(!active){
+   // 场景区段在「释放 → 重建」后会被替换，activeBefore 可能未记录过；
+   // 因此只要当前不活动且仍在渲染就必须停下，避免后台空转。
+   if(activeBefore.delete(id))changed.push(id);
+   if(item.api.isRunning())item.api.stop();
    Scenes.stopOrbit(id);
    Scenes.updateStatus(id);
-   changed.push(id);
   }
  }
  return changed;
@@ -97,7 +99,8 @@ function forget(id){
   item.listeners.forEach(x=>{
    try{x.node.removeEventListener(x.type,x.fn);}catch(_){}
   });
-  contextHandlers-=item.listeners.filter(x=>x.type.indexOf('webglcontext')===0).length;
+  const n=item.listeners.filter(x=>x.type.indexOf('webglcontext')===0).length;
+  if(n){contextHandlers--;contextListeners-=n;}
   if(observer&&item.host){try{observer.unobserve(item.host);}catch(_){}}
  }
  watched.delete(id);
@@ -127,6 +130,7 @@ function inspect(){
   watched:watched.size,
   resizeObservers:observer?1:0,
   contextHandlers,
+  contextListeners,
   active:[...activeBefore],
   running:[...watched].filter(([,v])=>v.api.isRunning()).map(([k])=>k),
   disposed

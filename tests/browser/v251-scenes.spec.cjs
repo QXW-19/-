@@ -127,6 +127,7 @@ test('反复进入退出五个场景，渲染循环按预期暂停与恢复且�
   expect(state.lc.watched).toBe(5);
   expect(state.lc.resizeObservers).toBe(1);
   expect(state.lc.contextHandlers).toBe(5);
+  expect(state.lc.contextListeners).toBe(10); // 每场景 lost + restored 两个监听
   expect(await page.evaluate(()=>window.DigitalV251Scenes.polished.length)).toBe(5);
 });
 
