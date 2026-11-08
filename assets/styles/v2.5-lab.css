@@ -133,3 +133,23 @@
 .v25-scene-status,.v25-scene-alert{font-size:12px;color:var(--v25-muted);
   font-family:var(--v241-font-mono,monospace);flex-basis:100%}
 .v25-scene-alert.v25-error{color:var(--v25-error);font-weight:700}
+
+/* ----- V2.5.1 场景教学信息与视觉精修 ----- */
+.v251-scene-info{margin:12px 0;padding:12px 14px;border:1px solid var(--v25-border);
+  border-radius:10px;background:var(--v25-surface-2);color:var(--v25-text);
+  font-size:13px;line-height:1.75;transition:border-color 200ms,background 200ms}
+.v251-scene-info:hover{border-color:var(--v25-high)}
+.v251-scene-info h4{margin:0 0 8px;font-size:15px}
+.v251-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.v251-legend-item{font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;color:#fff}
+.v251-legend-item.v251-hi{background:var(--v25-high)}
+.v251-legend-item.v251-lo{background:var(--v25-low)}
+.v251-legend-item.v251-x{background:var(--v25-x)}
+.v251-scene-info ul{list-style:none;margin:0 0 8px;padding:0}
+.v251-scene-info li{display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 0;
+  border-bottom:1px dashed var(--v25-border)}
+.v251-scene-info li strong{min-width:130px}
+.v251-signal{color:var(--v25-clock);font-family:var(--v241-font-mono,monospace);font-size:12px}
+.v251-scene-info li em{color:var(--v25-muted);font-style:normal}
+.v251-hint,.v251-scene-stat{font-size:12px;color:var(--v25-muted);margin:4px 0 0}
+.v251-scene-stat{font-family:var(--v241-font-mono,monospace);overflow-wrap:anywhere}

@@ -23,6 +23,12 @@ function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 
 function register(id,api){
  if(!api||!api.camera||!api.renderer||!api.scene||!api.host)return false;
+ // V2.5.1：场景重建时允许重新注册，先让生命周期模块释放旧监听。
+ if(scenes.has(id)){
+  stopOrbit(id);
+  if(root.DigitalV25Lifecycle&&root.DigitalV25Lifecycle.forget)
+   root.DigitalV25Lifecycle.forget(id);
+ }
  scenes.set(id,api);
  buildBar(id,api);
  bindTouch(id,api);
@@ -146,9 +152,17 @@ function inspect(id){
  };
 }
 function apiOf(id){return scenes.get(id)||null;}
+/* V2.5.1：永久释放场景时注销注册表并清掉控制条，供后续原样重建。 */
+function unregister(id){
+ stopOrbit(id);
+ scenes.delete(id);
+ const bar=document.querySelector('#'+id+' .v25-scene-bar');
+ if(bar)bar.remove();
+ return true;
+}
 
 root.DigitalV25Scenes=Object.freeze({
- register,inspect,zoom,updateStatus,stopOrbit,stopAllOrbits,apiOf,
+ register,unregister,inspect,zoom,updateStatus,stopOrbit,stopAllOrbits,apiOf,
  get ids(){return [...scenes.keys()];},
  get size(){return scenes.size;}
 });

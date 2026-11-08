@@ -36,18 +36,22 @@ function ensureResizeObserver(){
 }
 function onRegister(id,api){
  if(watched.has(id))return;               // 防止同一场景重复绑定
- watched.set(id,{api,bound:false});
+ const entry={api,bound:true,listeners:[],canvas:null,host:api.host};
+ watched.set(id,entry);
  ensureResizeObserver();
  if(observer&&api.host)observer.observe(api.host);
  if(api.renderer&&api.renderer.domElement){
   const canvas=api.renderer.domElement;
-  canvas.addEventListener('webglcontextlost',e=>{
+  entry.canvas=canvas;
+  const lost=e=>{
    e.preventDefault();api.stop();Scenes.stopOrbit(id);
    message(id,'WebGL 上下文已丢失，3D 渲染暂停；文字与二维内容仍可使用。',true);
-  });
-  canvas.addEventListener('webglcontextrestored',()=>{
-   api.start();message(id,'WebGL 上下文已恢复，3D 渲染继续。',false);
-  });
+  };
+  const restored=()=>{api.start();message(id,'WebGL 上下文已恢复，3D 渲染继续。',false);};
+  canvas.addEventListener('webglcontextlost',lost);
+  canvas.addEventListener('webglcontextrestored',restored);
+  entry.listeners.push({node:canvas,type:'webglcontextlost',fn:lost},
+   {node:canvas,type:'webglcontextrestored',fn:restored});
   contextHandlers++;
  }
  // 若 CDN 未加载导致画布迟迟未创建，给出降级说明（不声称渲染成功）。
@@ -84,6 +88,23 @@ function syncActivation(){
  }
  return changed;
 }
+/* V2.5.1：区分「暂时隐藏」与「永久释放」。
+ * 暂时隐藏只停 RAF，GPU 资源保留；forget() 才移除监听器与尺寸观察，
+ * 供 scene-polish 在永久销毁后重建场景时重新注册。 */
+function forget(id){
+ const item=watched.get(id);
+ if(item){
+  item.listeners.forEach(x=>{
+   try{x.node.removeEventListener(x.type,x.fn);}catch(_){}
+  });
+  contextHandlers-=item.listeners.filter(x=>x.type.indexOf('webglcontext')===0).length;
+  if(observer&&item.host){try{observer.unobserve(item.host);}catch(_){}}
+ }
+ watched.delete(id);
+ activeBefore.delete(id);
+ Scenes.stopOrbit(id);
+ return !!item;
+}
 function init(){
  const main=document.getElementById('main');if(!main)return;
  // 已注册但生命周期模块晚于场景加载的情况，补齐绑定。
@@ -111,7 +132,7 @@ function inspect(){
   disposed
  };
 }
-root.DigitalV25Lifecycle=Object.freeze({onRegister,syncActivation,dispose,inspect});
+root.DigitalV25Lifecycle=Object.freeze({onRegister,forget,syncActivation,dispose,inspect});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 else init();
 })(typeof window!=='undefined'?window:globalThis);

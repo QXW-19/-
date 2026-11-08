@@ -23,6 +23,7 @@ const FILES={
  course:'assets/labs/examples/v2.5-course-links.js',
  camera:'assets/scenes/controls/v2.5-camera.js',
  lifecycle:'assets/scenes/lifecycle/v2.5-lifecycle.js',
+ polish:'assets/scenes/lifecycle/v2.5.1-scene-polish.js',
  css:'assets/styles/v2.5-lab.css'
 };
 
@@ -37,6 +38,12 @@ const order=[FILES.examples,FILES.signals,FILES.waveform,FILES.editor,FILES.cour
  .map(f=>html.indexOf(f));
 ok(order.every((p,i)=>p>0&&(i===0||p>order[i-1])),'V2.5 模块按依赖顺序加载');
 ok(html.indexOf(FILES.camera)<html.indexOf(FILES.lifecycle),'3D 相机控制器先于生命周期模块');
+ok(html.indexOf(FILES.lifecycle)<html.indexOf(FILES.polish),'场景精修模块在生命周期之后');
+const polish=parse(FILES.polish);
+ok(/function release\(/.test(polish)&&/function recreate\(/.test(polish),'场景支持永久释放与重建');
+ok(/geometry\.dispose\(\)/.test(polish)&&/forceContextLoss/.test(polish),'释放真实 GPU 资源');
+ok(/v251-scene-info/.test(polish)&&/v251-legend/.test(polish),'新增关键元件与三值图例');
+ok(/limits\.min=Math\.max/.test(polish),'提供相机防穿模下限');
 ok(html.indexOf(FILES.camera)<html.indexOf('window.onShow_w1'),'3D 控制器在场景模块之前可用');
 
 /* 五个场景注册点 */
