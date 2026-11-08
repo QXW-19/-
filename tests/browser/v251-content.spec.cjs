@@ -165,3 +165,19 @@ test('第二章深读与两个门电路案例同样可用',async({page})=>{
   expect(c.wires.length).toBe(9);
   expect(errors).toEqual([]);
 });
+
+test('第三章深读齐全，三态总线案例可跳到章节互动',async({page})=>{
+  const errors=watch(page);
+  await home(page);
+  for(const id of ['l3-1','l3-2','l3-3','l3-4']){
+    await lesson(page,id);
+    await expect(page.locator('#v18-school .v251-deep'),id).toHaveCount(4,{timeout:8000});
+  }
+  await page.evaluate(()=>window.DigitalV251ContentUI.openCase('case-3-2'));
+  await expect(page.locator('#v251-cases .v251-part')).toHaveCount(13);
+  // 指标、8 种组合、器件、测试、自评量规共 5 张表
+  await expect(page.locator('#v251-cases .v251-table')).toHaveCount(5);
+  await page.locator('#v251-cases button',{hasText:'打开章节互动模块'}).click();
+  await expect(page.locator('#n3')).toHaveClass(/active/);
+  expect(errors).toEqual([]);
+});
