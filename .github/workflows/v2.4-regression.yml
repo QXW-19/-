@@ -41,6 +41,8 @@ jobs:
         run: npm run test:v241
       - name: 检查 V2.5 工程结构
         run: npm run test:v25
+      - name: 检查 V2.5.1 教学内容质量（逐章）
+        run: npm run test:content
       - name: 运行 V2.5 电路仿真单元测试
         run: npm run test:unit
       - name: 安装 Chromium
