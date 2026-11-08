@@ -226,6 +226,19 @@ html.v241-design pre,html.v241-design code{background:var(--v241-code-bg);border
   font-size:var(--v241-fs-sm);color:var(--v241-text);line-height:var(--v241-lh-body)}
 .v241-b3 h2{scroll-margin-top:var(--v241-sp-4)}
 
+/* ===== 互动实验结果解读与 3D 分级状态 ===== */
+.v241-lab-strip{margin-top:var(--v241-sp-4);padding:var(--v241-sp-4);
+  border:1px solid var(--v241-border);border-left:4px solid var(--v241-primary);
+  border-radius:var(--v241-r-md);background:var(--v241-surface-2)}
+.v241-lab-head{display:flex;align-items:center;gap:var(--v241-sp-3);margin-bottom:var(--v241-sp-2)}
+.v241-lab-head strong{font-size:var(--v241-fs-md);color:var(--v241-text)}
+.v241-lab-value{font-family:var(--v241-font-mono);font-size:var(--v241-fs-sm);color:var(--v241-text);
+  background:var(--v241-surface);border:1px solid var(--v241-border);border-radius:var(--v241-r-sm);
+  padding:var(--v241-sp-2) var(--v241-sp-3);overflow-wrap:anywhere;margin:0 0 var(--v241-sp-2)}
+.v241-lab-explain{font-size:var(--v241-fs-sm);color:var(--v241-text-soft);line-height:var(--v241-lh-body);margin:0 0 var(--v241-sp-2)}
+.v241-wave{margin:var(--v241-sp-3) 0 0}
+.v241-wave figcaption{margin-top:var(--v241-sp-2)}
+
 /* 3D 画布触摸与资源提示 */
 html.v241-design #city3d canvas,
 html.v241-design .v241-3d-canvas{touch-action:none;max-width:100%}

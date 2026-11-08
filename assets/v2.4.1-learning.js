@@ -145,7 +145,7 @@ function summaryPanel(l){
   const hw=HARDWARE[l.chapter];
   if(hw){
     const note=doc.createElement('p');note.className='v241-note';
-    note.textContent='模型边界：'+hw;sec.append(note);
+    note.textContent='模型边界：'+hw+' 具体电气参数与时序指标须查芯片数据手册。';sec.append(note);
   }
   const all=lessons(),idx=all.findIndex(x=>x.id===l.id),next=all[idx+1];
   const review=doc.createElement('p');review.className='v241-review';review.id='v241-review';
