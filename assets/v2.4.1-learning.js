@@ -14,6 +14,8 @@
 'use strict';
 const doc=document;
 const UI=root.DigitalV241UI;
+/* 复用 V2.4.1 公共 UI 组件，避免各模块重复实现 DOM 构造。 */
+const el=UI?UI.el:(tag,text,cls)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=String(text);if(cls)n.className=cls;return n;};
 const C=root.DigitalV18Lab;
 
 /* 每章一个可直接用同页微型实验验证的预测题。
@@ -77,12 +79,12 @@ function buildStepNav(){
   const p=pane();if(!p)return;
   const list=panels();
   const old=p.querySelector(':scope > .v241-steps');if(old)old.remove();
-  const nav=doc.createElement('nav');
+  const nav=el('nav');
   nav.className='v241-steps';
   nav.setAttribute('aria-label','本节学习路径');
   STEPS.forEach(([label,match])=>{
     const target=list.find(x=>match(headOf(x)));
-    const b=doc.createElement('button');
+    const b=el('button');
     b.type='button';b.className='v241-step'+(target?'':' v241-step-off');
     b.textContent=label;
     b.disabled=!target;
@@ -95,27 +97,27 @@ function buildStepNav(){
 /* ---------- 先预测实验结果 ---------- */
 function predictionPanel(l){
   const data=PREDICT[l.chapter];if(!data)return null;
-  const sec=doc.createElement('section');
+  const sec=el('section');
   sec.className='v18-panel v241-b3 v241-predict';
-  const h=doc.createElement('h2');h.textContent='先预测 · 再做实验';sec.append(h);
-  const intro=doc.createElement('p');intro.className='v18-help';
+  const h=el('h2');h.textContent='先预测 · 再做实验';sec.append(h);
+  const intro=el('p');intro.className='v18-help';
   intro.textContent='第 '+l.chapter+' 章 · '+l.title+'。先在心里给出答案，然后到下方动手实验改参数验证。';
   sec.append(intro);
-  const q=doc.createElement('p');q.className='v241-predict-q';q.textContent=data.q;sec.append(q);
-  const form=doc.createElement('fieldset');form.className='v241-predict-form';
-  const legend=doc.createElement('legend');legend.textContent='你的预测';form.append(legend);
+  const q=el('p');q.className='v241-predict-q';q.textContent=data.q;sec.append(q);
+  const form=el('fieldset');form.className='v241-predict-form';
+  const legend=el('legend');legend.textContent='你的预测';form.append(legend);
   let picked=null;
   data.options.forEach((text,i)=>{
-    const label=doc.createElement('label');label.className='v18-choice';
-    const radio=doc.createElement('input');radio.type='radio';radio.name='v241-predict-'+l.id;radio.value=String(i);
+    const label=el('label');label.className='v18-choice';
+    const radio=el('input');radio.type='radio';radio.name='v241-predict-'+l.id;radio.value=String(i);
     radio.addEventListener('change',()=>{picked=i;});
-    const span=doc.createElement('span');span.textContent=String.fromCharCode(65+i)+'. '+text;
+    const span=el('span');span.textContent=String.fromCharCode(65+i)+'. '+text;
     label.append(radio,span);form.append(label);
   });
-  const actions=doc.createElement('div');actions.className='v18-actions';
-  const feedback=doc.createElement('p');feedback.className='v241-predict-feedback';feedback.setAttribute('aria-live','polite');
-  const record=doc.createElement('button');record.type='button';record.className='v241-btn';record.textContent='记录预测';
-  const reveal=doc.createElement('button');reveal.type='button';reveal.className='v241-btn soft';reveal.textContent='查看解析';
+  const actions=el('div');actions.className='v18-actions';
+  const feedback=el('p');feedback.className='v241-predict-feedback';feedback.setAttribute('aria-live','polite');
+  const record=el('button');record.type='button';record.className='v241-btn';record.textContent='记录预测';
+  const reveal=el('button');reveal.type='button';reveal.className='v241-btn soft';reveal.textContent='查看解析';
   record.addEventListener('click',()=>{
     if(picked===null){feedback.textContent='请先选择一个预测。';return;}
     feedback.textContent='已记录：'+data.options[picked]+'。现在请到下方「动手实验」改参数验证，再回来看解析。';
@@ -127,7 +129,7 @@ function predictionPanel(l){
     feedback.classList.toggle('v18-wrong',!right);
   });
   actions.append(record,reveal);form.append(actions,feedback);sec.append(form);
-  const note=doc.createElement('p');note.className='v18-help';
+  const note=el('p');note.className='v18-help';
   note.textContent='预测不参与判分，也不会写入学习记录；它的作用是让实验结果变成一次可验证的预期。';
   sec.append(note);
   return sec;
@@ -135,20 +137,20 @@ function predictionPanel(l){
 
 /* ---------- 知识总结与复习建议 ---------- */
 function summaryPanel(l){
-  const sec=doc.createElement('section');
+  const sec=el('section');
   sec.className='v18-panel v241-b3 v241-summary';
-  const h=doc.createElement('h2');h.textContent='知识总结 · 带走这一节';sec.append(h);
-  const core=doc.createElement('p');core.className='v18-paragraph';
+  const h=el('h2');h.textContent='知识总结 · 带走这一节';sec.append(h);
+  const core=el('p');core.className='v18-paragraph';
   core.textContent='核心关系：'+l.formula;sec.append(core);
-  const pit=doc.createElement('p');pit.className='v18-paragraph';
+  const pit=el('p');pit.className='v18-paragraph';
   pit.textContent='最容易错的地方：'+l.pitfall;sec.append(pit);
   const hw=HARDWARE[l.chapter];
   if(hw){
-    const note=doc.createElement('p');note.className='v241-note';
+    const note=el('p');note.className='v241-note';
     note.textContent='模型边界：'+hw+' 具体电气参数与时序指标须查芯片数据手册。';sec.append(note);
   }
   const all=lessons(),idx=all.findIndex(x=>x.id===l.id),next=all[idx+1];
-  const review=doc.createElement('p');review.className='v241-review';review.id='v241-review';
+  const review=el('p');review.className='v241-review';review.id='v241-review';
   review.setAttribute('aria-live','polite');
   const s=read('digital-course-v1.8-study')||{};
   const attempts=s.attempts&&typeof s.attempts==='object'?Number(s.attempts[l.id]||0):0;
@@ -158,9 +160,9 @@ function summaryPanel(l){
            :'复习建议：这是最后一节，建议进入章节测试做一次综合检索。');
   sec.append(review);
   if(next){
-    const b=doc.createElement('button');b.type='button';b.className='v241-btn soft';b.textContent='进入下一节 →';
+    const b=el('button');b.type='button';b.className='v241-btn soft';b.textContent='进入下一节 →';
     b.addEventListener('click',()=>UI&&UI.openLesson(next.id));
-    const row=doc.createElement('div');row.className='v18-actions';row.append(b);sec.append(row);
+    const row=el('div');row.className='v18-actions';row.append(b);sec.append(row);
   }
   return sec;
 }

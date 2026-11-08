@@ -35,6 +35,8 @@ jobs:
         run: npm run test:loop
       - name: 检查 V2.4 发布元信息
         run: npm run test:release
+      - name: 检查 V2.4.1 工程结构与设计系统
+        run: npm run test:v241
       - name: 安装 Chromium
         run: npx playwright install --with-deps chromium
       - name: 运行 V2.3 + V2.4 浏览器测试

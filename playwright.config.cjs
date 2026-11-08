@@ -2,6 +2,9 @@
 const {defineConfig}=require('@playwright/test');
 module.exports=defineConfig({
   testDir:'./tests/browser',
+  // 输出目录可通过环境变量覆盖：本地反复回归时指向独立目录，
+  // 避免历史报告堆积导致清理失败；CI 使用默认 test-results。
+  outputDir:process.env.PW_OUTPUT_DIR||'test-results',
   timeout:45000,
   expect:{timeout:12000},
   fullyParallel:false,
