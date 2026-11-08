@@ -567,7 +567,14 @@ function buildProjectSection(main){
   box.append(top);
   box.append(el('h3',p.title,'v251-card-title'));
   box.append(el('p',p.bg.slice(0,90)+'…','v251-card-goal'));
-  box.append(button('查看项目 →',()=>openProject(p.id),'v251-btn'));
+  const acts=el('div','','v251-chip-row');
+  acts.append(button('查看项目 →',()=>openProject(p.id),'v251-btn'));
+  // V2.5.2：实训台脚本在本模块之后加载，因此按钮始终渲染，点击时再取模块。
+  acts.append(button('🧪 进入实训台',()=>{
+   if(root.DigitalV252Lab)root.DigitalV252Lab.open(p.id);
+   else alert('实训台模块尚未加载完成，请稍后重试。');
+  },'v251-btn soft'));
+  box.append(acts);
   list.append(box);
  });
  main.append(sec);
@@ -589,6 +596,13 @@ function openProject(id){
  head.append(el('div',(p.level||'综合项目')+' · 建议 4 课时','v251-badge'));
  head.append(el('h2',p.title,'v251-detail-title'));
  head.append(el('p','目标：'+p.goal,'v251-detail-goal'));
+ const entryRow=el('div','','v251-chip-row');
+ entryRow.style.marginTop='10px';
+ entryRow.append(button('🧪 进入实训台（可运行仿真）',()=>{
+  if(root.DigitalV252Lab)root.DigitalV252Lab.open(p.id);
+  else alert('实训台模块尚未加载完成，请稍后重试。');
+ },'v251-btn'));
+ head.append(entryRow);
  frag.append(head);
  const body=el('div','','v251-detail-body');
  [['bg','一、项目背景与最终形态'],['spec','二、指标与验收标准'],['block','三、系统框图与模块划分'],

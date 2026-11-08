@@ -15,7 +15,7 @@
     "test:loop": "node tests/verify-v2.4-learning-loop.cjs",
     "test:release": "node tests/verify-release-v2.4.cjs",
     "test:v241": "node tests/verify-v2.4.1.cjs",
-    "test:unit": "node tests/unit/verify-v2.5-core.cjs && node tests/unit/verify-v2.5.1-wave.cjs",
+    "test:unit": "node tests/unit/verify-v2.5-core.cjs && node tests/unit/verify-v2.5.1-wave.cjs && node tests/unit/verify-v2.5.2-projects.cjs",
     "test:v25": "node tests/verify-v2.5.cjs"
   },
   "engines": {
