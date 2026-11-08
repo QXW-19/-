@@ -24,6 +24,7 @@ const FILES={
  camera:'assets/scenes/controls/v2.5-camera.js',
  lifecycle:'assets/scenes/lifecycle/v2.5-lifecycle.js',
  polish:'assets/scenes/lifecycle/v2.5.1-scene-polish.js',
+ archive:'assets/labs/waveform-analyzer/v2.5.1-wave-archive.js',
  css:'assets/styles/v2.5-lab.css'
 };
 
@@ -44,6 +45,14 @@ ok(/function release\(/.test(polish)&&/function recreate\(/.test(polish),'场景
 ok(/geometry\.dispose\(\)/.test(polish)&&/forceContextLoss/.test(polish),'释放真实 GPU 资源');
 ok(/v251-scene-info/.test(polish)&&/v251-legend/.test(polish),'新增关键元件与三值图例');
 ok(/limits\.min=Math\.max/.test(polish),'提供相机防穿模下限');
+const archive=parse(FILES.archive);
+const waveSrc=parse(FILES.waveform);
+ok(/segmentSize:256/.test(archive)&&/maxSegments:8/.test(archive),'波形归档有明确分段与容量上限');
+ok(/v2\.5\.1-wave-archive/.test(archive)&&/version:2/.test(archive),'波形导出导入带版本校验');
+ok(/0 \/ 1 \/ X/.test(archive),'归档只接受三值逻辑采样');
+ok(/S\.sample\(circuit,circuit\.tick,edge\)/.test(waveSrc),'波形采样仍直接来自仿真引擎');
+ok(/archive\.append/.test(waveSrc),'波形仪使用分段归档而非无限数组');
+ok(html.indexOf(FILES.archive)<html.indexOf(FILES.waveform),'归档模块先于波形仪加载');
 ok(html.indexOf(FILES.camera)<html.indexOf('window.onShow_w1'),'3D 控制器在场景模块之前可用');
 
 /* 五个场景注册点 */
@@ -78,7 +87,7 @@ ok(sections.length===51,'HTML 中 51 个原始教学模块保持不变');
 for(let i=1;i<=8;i++)ok(sections.includes('c'+i),'第 '+i+' 章保留');
 for(let i=1;i<=5;i++)ok(sections.includes('w'+i),'第 '+i+' 个 3D 场景保留');
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
-ok(pkg.version==='2.5.0','发布版本为 2.5.0');
+ok(pkg.version==='2.5.1','发布版本为 2.5.1');
 ok(typeof pkg.scripts['test:unit']==='string','test:unit 已接入 npm 脚本');
 const wf=fs.readFileSync(path.join(root,'.github/workflows/v2.4-regression.yml'),'utf8');
 ok(wf.includes('feature/digital-course-v2.5'),'CI 已允许 V2.5 分支触发');

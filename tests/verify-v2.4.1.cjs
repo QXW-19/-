@@ -77,6 +77,6 @@ for(let i=1;i<=5;i++)ok(sections.includes('w'+i),'第 '+i+' 个 3D 场景保留'
 ok(html.includes('window.location.replace')||fs.readFileSync(path.join(root,'index.html'),'utf8').includes('window.location.replace'),
   '首页重定向与深链接保留');
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
-ok(pkg.version==='2.5.0','发布版本为 2.5.0');
+ok(pkg.version==='2.5.1','发布版本为 2.5.1');
 ok(html.length<369524,'主 HTML 小于第二批拆分前基线 369524 字符（当前 '+html.length+'）');
 console.log('V2.4.1 工程结构共 '+count+' 项检查通过；HTML '+html.length+' 字符，内联脚本 '+inlineBodies.length+' 个。');

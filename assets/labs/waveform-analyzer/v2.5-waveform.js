@@ -28,6 +28,10 @@ function button(label,fn,cls){
 
 function create(host,lab){
  if(!host||!lab)throw Error('波形分析仪缺少宿主或实验室接口');
+ /* V2.5.1：分段归档替代线性数组；samples 只作为扁平化只读缓存。 */
+ const WA=root.DigitalV251WaveArchive;
+ if(!WA)throw Error('波形归档模块未加载');
+ const archive=WA.create();
  let samples=[],channelKeys=[],view=16,offset=0,cursor=0,onClock=null;
  const wrap=el('section',undefined,'v25-wave');
  wrap.append(el('h3','交互式时序波形分析仪'));
@@ -40,12 +44,23 @@ function create(host,lab){
  const sampleBtn=button('⏺ 采样当前状态',()=>record(lab.getCircuit(),false));
  const runBtn=button('▶ 自动时钟',()=>lab.toggleAutoClock(runBtn));
  const resetBtn=button('⟲ 复位',()=>lab.resetCircuit());
- const clearBtn=button('清除历史',()=>{samples=[];offset=0;cursor=0;draw();});
+ const clearBtn=button('清除历史',()=>{archive.clear();samples=[];offset=0;cursor=0;updateStats();draw();});
  const zoomIn=button('+ 放大',()=>{view=Math.max(4,view/2);draw();});
  const zoomOut=button('− 缩小',()=>{view=Math.min(64,view*2);draw();});
  const left=button('◀',()=>{offset=Math.max(0,offset-Math.max(1,Math.floor(view/2)));draw();});
  const right=button('▶',()=>{offset=Math.min(Math.max(0,samples.length-1),offset+Math.max(1,Math.floor(view/2)));draw();});
- bar.append(stepBtn,sampleBtn,runBtn,resetBtn,clearBtn,zoomIn,zoomOut,left,right);
+ const exportBtn=button('⇩ 导出波形',exportWave);
+ const file=el('input');file.type='file';file.accept='.json,application/json';file.hidden=true;
+ file.addEventListener('change',async()=>{
+  const f=file.files&&file.files[0];if(!f)return;
+  try{
+   if(f.size>4*1024*1024)throw Error('波形文件不能超过 4 MB');
+   importWave(JSON.parse(await f.text()));
+  }catch(err){readout.textContent='波形导入失败：'+err.message;}
+  finally{file.value='';}
+ });
+ const importBtn=button('⇧ 导入波形',()=>file.click());
+ bar.append(stepBtn,sampleBtn,runBtn,resetBtn,clearBtn,zoomIn,zoomOut,left,right,exportBtn,importBtn,file);
  wrap.append(bar);
 
  const channelBox=el('div',undefined,'v25-channel-box');
@@ -54,6 +69,15 @@ function create(host,lab){
  wrap.append(plot);
  const readout=el('p',undefined,'v25-wave-readout');readout.setAttribute('aria-live','polite');
  wrap.append(readout);
+ const statBox=el('p',undefined,'v251-archive-stat');
+ statBox.setAttribute('aria-live','polite');wrap.append(statBox);
+ function updateStats(){
+  const a=archive.stats();
+  const text='归档：'+a.segments+' 段 / 上限 '+a.maxSegments+' 段（每段 '+a.segmentSize+
+   ' 采样，共 '+a.capacity+' 条）· 当前 '+a.total+' 条 · 估算 '+Math.round(a.bytes/1024)+
+   ' KB / 上限 '+Math.round(a.maxBytes/1024)+' KB · 已丢弃最旧 '+a.dropped+' 条';
+  if(statBox.textContent!==text)statBox.textContent=text;
+ }
  const caseBox=el('div',undefined,'v25-case-box');
  wrap.append(caseBox);
  host.append(wrap);
@@ -104,7 +128,7 @@ function create(host,lab){
  function loadCase(id){
   const E=root.DigitalV25Examples;if(!E)return;
   lab.loadCircuit(E.build(id),'案例：'+E.get(id).name);
-  samples=[];offset=0;cursor=0;
+  archive.clear();samples=[];offset=0;cursor=0;
   showCase(id);
   record(lab.getCircuit());
  }
@@ -122,8 +146,9 @@ function create(host,lab){
  function record(circuit,edge){
   if(!circuit||!circuit.nodes.length)return;
   const snap=S.sample(circuit,circuit.tick,edge);
-  samples.push(snap);
-  if(samples.length>256)samples.shift();
+  archive.append(snap);
+  samples=archive.flatten();   // 归档上限固定，缓存不会无限增长
+  updateStats();
   if(samples.length>view)offset=samples.length-view;
   cursor=samples.length-1;
   rebuildChannels(circuit);
@@ -208,25 +233,58 @@ function create(host,lab){
   if(visible.length){cursor=offset+idx;draw();}
  });
 
- /* ---------- 对外接口 ---------- */
+ /* ---------- 对外接口（V2.5.1：归档导出/导入与内存上限） ---------- */
+ function exportWave(){
+  // 导出文件带版本与类型标记，导入时逐条校验，防止把任意 JSON 当波形数据。
+  const data=Object.assign(archive.exportData(),{channelKeys,view,source:'V1.6 DigitalMixedCircuit 离散事件采样'});
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=el('a');
+  a.href=url;a.download='数字电路-V2.5.1-波形归档.json';document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
+  readout.textContent='已导出 '+archive.stats().total+' 条采样（理想离散事件教学数据，非示波器测量）。';
+  return data;
+ }
+ function importWave(data){
+  const count=archive.importData(data);          // 版本/分段/逐条采样校验
+  samples=archive.flatten();
+  if(Array.isArray(data.channelKeys))channelKeys=data.channelKeys.slice(0,12);
+  if(Number.isFinite(data.view))view=Math.max(4,Math.min(64,data.view));
+  cursor=Math.max(0,samples.length-1);
+  offset=Math.max(0,samples.length-view);
+  updateStats();rebuildChannels(lab.getCircuit());draw();
+  readout.textContent='已导入 '+count+' 条波形采样。';
+  return count;
+ }
  function setConfig(cfg){
   if(!cfg)return;
-  if(Array.isArray(cfg.samples))samples=cfg.samples.slice(-256);
+  // 兼容 V2.5 的旧配置（线性 samples 数组），逐条校验后写入归档。
+  if(Array.isArray(cfg.samples)&&!cfg.archive){
+   archive.clear();
+   cfg.samples.slice(-archive.stats().capacity).forEach(x=>{
+    try{WA.validateSample(x);archive.append(x);}catch(_){}
+   });
+   samples=archive.flatten();
+  }else if(cfg.archive){
+   try{archive.importData(cfg.archive);samples=archive.flatten();}catch(_){}
+  }
   if(Array.isArray(cfg.channelKeys))channelKeys=cfg.channelKeys.slice(0,12);
   if(Number.isFinite(cfg.view))view=Math.max(4,Math.min(64,cfg.view));
   cursor=Math.max(0,samples.length-1);
   offset=Math.max(0,samples.length-view);
-  draw();
+  updateStats();draw();
  }
- function getConfig(){return {samples,channelKeys,view};}
- function reset(){samples=[];offset=0;cursor=0;draw();}
+ // 历史波形只在当前会话保存；localStorage 仅记录通道与缩放配置，避免存档膨胀。
+ function getConfig(){return {channelKeys,view};}
+ function reset(){archive.clear();samples=[];offset=0;cursor=0;updateStats();draw();}
+ function archiveStats(){return archive.stats();}
  function currentCircuit(){return lab.getCircuit();}
 
  rebuildCases();
  const c=currentCircuit();
  if(c)rebuildChannels(c);
- draw();
+ updateStats();draw();
  return Object.freeze({record,draw,rebuildChannels,showCase,loadCase,setConfig,getConfig,reset,
+   exportWave,importWave,archiveStats,
    get samples(){return samples;},get channelKeys(){return channelKeys;}});
 }
 

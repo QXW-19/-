@@ -747,6 +747,7 @@ function createLab(){
   evaluate,
   diagnose:()=>S.diagnose(circuit,evaluate()),
   historyStatus,
+  waveform:()=>waveform,
   gestureState:()=>gesture?gesture.mode:'idle',
   viewState:()=>({scale,tx,ty}),
   pulse,resetCircuit,loadCircuit,exportData,

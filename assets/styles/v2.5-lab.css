@@ -167,3 +167,4 @@
   filter:drop-shadow(0 0 6px var(--v25-high))}
 .v251-canvas-error{box-shadow:inset 0 0 0 2px var(--v25-error)}
 .v25-palette-item{touch-action:none}
+.v251-archive-stat{color:var(--v25-muted);font-size:11px;line-height:1.7;margin:4px 0 0;font-family:var(--v241-font-mono,monospace);overflow-wrap:anywhere}
