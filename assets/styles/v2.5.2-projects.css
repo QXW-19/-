@@ -164,3 +164,23 @@
 @media(prefers-reduced-motion:reduce){
  .v252-btn,.v252-progress-fill{transition:none}
 }
+
+/* ---------- V2.5.2 案例联动卡 ---------- */
+.v252-case-link{margin:14px 0;padding:14px;border-radius:12px;
+  border:1px solid var(--v241-border,#d9e6ec);background:var(--v241-surface-2,#f7fbfd)}
+.v252-link-title{margin:0 0 8px;font-size:15px;color:var(--v241-text,#102a36);
+  padding-left:9px;border-left:4px solid var(--v241-accent,#2563c9)}
+.v252-link-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.v252-link-note{margin:4px 0 8px;font-size:12.5px;line-height:1.7;color:var(--v241-muted,#6c8794)}
+.v252-cap{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;
+  background:var(--v241-surface-3,#eaf3f6);color:var(--v241-text-soft,#3f5c68)}
+.v252-cap.mini{margin-top:2px;align-self:flex-start}
+.v252-cap.circuit{background:var(--v241-primary-soft,#e0f4f1);color:var(--v241-primary-dark,#0a6c64)}
+.v252-cap.module{background:var(--v241-accent-soft,#e7effd);color:var(--v241-accent,#2563c9)}
+.v252-cap.numeric{background:#fdf1dc;color:var(--v241-warn,#b26a09)}
+.v252-cap.needs{background:#fbe4e4;color:var(--v241-danger,#c23f3f)}
+:root[data-theme="dark"] .v252-cap.numeric{background:#3a2c12}
+:root[data-theme="dark"] .v252-cap.needs{background:#3d1f1f}
+.v252-probe:empty{display:none}
+.v252-probe{margin-top:10px}
+.v251-flash{outline:3px solid var(--v241-accent,#2563c9);outline-offset:3px;transition:outline-color 200ms}

@@ -89,6 +89,26 @@ for(const id of D.ids){
  ok(p.steps.wave&&p.steps.wave.hint,id+' 波形分析提供观察提示');
 }
 
+/* ---------- 2b. 案例联动能力表 ---------- */
+vm.runInContext(fs.readFileSync(path.join(root,'assets/content/cases/v2.5.2-case-links.js'),'utf8'),sandbox,
+ {filename:'v2.5.2-case-links.js'});
+const CL=sandbox.window.DigitalV252CaseLinks;
+ok(CL&&CL.ids.length===19,'19 个案例都有联动能力条目（当前 '+CL.ids.length+'）');
+const caps=CL.stats();
+ok(caps.circuit===8,'8 个案例支持完整电路仿真');
+ok(caps.module===5,'5 个案例连接原有章节互动');
+ok(caps.numeric===6,'6 个案例为数值/图形演示');
+ok(caps.circuit+caps.module>=12,'可操作案例合计不少于 12 个（当前 '+(caps.circuit+caps.module)+'）');
+for(const id of CL.ids){
+ const x=CL.get(id);
+ ok(typeof x.objective==='string'&&x.objective.length>10,id+' 有操作目标');
+ ok(Array.isArray(x.prereq)&&x.prereq.length>=1,id+' 有前置知识');
+ ok(Array.isArray(x.expected)&&x.expected.length>=2,id+' 有预期输入输出');
+ ok(Array.isArray(x.improve)&&x.improve.length>=2,id+' 有设计改进思考');
+ ok(['circuit','module','numeric','needs'].includes(x.cap),id+' 能力等级合法');
+ ok(x.entry&&['circuit','module','widget','project'].includes(x.entry.type),id+' 有交互入口');
+}
+
 /* ---------- 3. 交通灯与时钟模型 ---------- */
 const P=require(path.join(root,'assets/v1.7-core.js'));
 let st=P.fresh();

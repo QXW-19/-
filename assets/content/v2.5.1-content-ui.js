@@ -167,6 +167,8 @@ function buildCaseSection(main){
   box.append(top);
   box.append(el('h3',c.title,'v251-card-title'));
   box.append(el('p',c.goal,'v251-card-goal'));
+  const CL=root.DigitalV252CaseLinks,ci=CL&&CL.get(c.id);
+  if(ci)box.append(el('span',CAP_SHORT[ci.cap],'v252-cap mini '+ci.cap));
   box.append(button('查看案例 →',()=>openCase(c.id),'v251-btn'));
   return box;
  }
@@ -314,6 +316,97 @@ function sevenSegWidget(){
  return box;
 }
 
+/* ------------------ V2.5.2：案例实训联动与自检 ------------------ */
+const CAP_SHORT={circuit:'可仿真',module:'章节互动',numeric:'数值演示',needs:'待扩展'};
+
+function openEntry(entry){
+ if(!entry)return;
+ if(entry.type==='circuit'){openExample(entry.id);return;}
+ if(entry.type==='module'){if(typeof root.show==='function')root.show(entry.id);return;}
+ if(entry.type==='project'){
+  if(root.DigitalV252Lab)root.DigitalV252Lab.open(entry.id);
+  return;
+ }
+ if(entry.type==='widget'){
+  const target=doc.querySelector('#v251-cases .v251-sevenseg');
+  if(target){target.scrollIntoView({block:'center'});target.classList.add('v251-flash');
+   setTimeout(()=>target.classList.remove('v251-flash'),1200);}
+ }
+}
+function runProbe(id,box){
+ const P=root.DigitalV252CaseProbe;
+ box.replaceChildren();
+ if(!P||!P.canRun(id)){box.append(el('p','该案例没有可自动运行的电路/模型，请在打开的互动模块中按测试用例观察。','v252-hint'));return;}
+ const r=P.run(id);
+ if(r.error){box.append(el('p','自检未完成：'+r.error,'v252-bad-text'));return;}
+ const head=el('p','自检结果：'+r.pass+' / '+r.total+' 项通过'+(r.allPass?'（全部符合预期）':''),
+  r.allPass?'v252-ok-text':'v252-bad-text');
+ box.append(head);
+ const wrap=el('div','','v252-table-wrap');
+ const t=el('table','','v252-table');
+ const thead=el('thead'),tr=el('tr');
+ ['输入 / 操作','预期','实际','结论'].forEach(h=>tr.append(el('th',h)));
+ thead.append(tr);t.append(thead);
+ const tb=el('tbody');
+ r.rows.forEach(row=>{
+  const tr2=el('tr');
+  tr2.append(el('td',row.input),el('td',row.expect),el('td',row.actual),
+   el('td',row.pass?'✓ 通过':'✗ 不符'));
+  tb.append(tr2);
+ });
+ t.append(tb);wrap.append(t);box.append(wrap);
+}
+function linkage(c){
+ const L=root.DigitalV252CaseLinks;
+ const info=L&&L.get(c.id);
+ if(!info)return el('div');
+ const sec=el('section','','v252-case-link');
+ sec.append(el('h3','实训联动 · 能力与操作','v252-link-title'));
+ const top=el('div','','v252-link-top');
+ top.append(el('span',L.LABELS[info.cap],'v252-cap '+info.cap));
+ sec.append(top);
+ sec.append(el('p','能力边界：'+info.capNote,'v252-link-note'));
+ sec.append(el('p','操作目标：'+info.objective,'v252-p'));
+
+ const pre=el('div','','v252-row');
+ pre.append(el('span','前置知识：','v252-field-label'));
+ const book=root.DigitalV18Lessons;
+ info.prereq.forEach(lid=>{
+  const l=book&&book.lessons?book.lessons.find(x=>x.id===lid):null;
+  const b=el('button',l?l.title:lid,'v252-chip');
+  b.type='button';
+  b.addEventListener('click',()=>{if(root.DigitalV241UI)root.DigitalV241UI.openLesson(lid);});
+  pre.append(b);
+ });
+ sec.append(pre);
+
+ const wrap=el('div','','v252-table-wrap');
+ const t=el('table','','v252-table');
+ const thead=el('thead'),tr=el('tr');
+ ['预期输入 / 操作','预期结果'].forEach(h=>tr.append(el('th',h)));
+ thead.append(tr);t.append(thead);
+ const tb=el('tbody');
+ info.expected.forEach(x=>{
+  const row=el('tr');
+  row.append(el('td',x.input),el('td',x.expect));
+  tb.append(row);
+ });
+ t.append(tb);wrap.append(t);sec.append(wrap);
+
+ const resultBox=el('div','','v252-probe');
+ const acts=el('div','','v252-row');
+ acts.append(button(info.entry.label,()=>openEntry(info.entry),'v251-btn'));
+ if(root.DigitalV252CaseProbe&&root.DigitalV252CaseProbe.canRun(c.id)){
+  acts.append(button('▶ 运行自检（真实计算）',()=>runProbe(c.id,resultBox),'v251-btn soft'));
+ }
+ sec.append(acts,resultBox);
+ sec.append(el('h4','设计改进思考','v252-sub'));
+ const ul=el('ul','','v252-list');
+ info.improve.forEach(x=>ul.append(el('li',x)));
+ sec.append(ul);
+ return sec;
+}
+
 function caseDetail(c){
  const box=doc.createDocumentFragment();
  const back=button('← 返回案例列表',()=>{
@@ -330,6 +423,7 @@ function caseDetail(c){
  head.append(el('h2',c.title,'v251-detail-title'));
  head.append(el('p','目标：'+c.goal,'v251-detail-goal'));
  box.append(head);
+ box.append(linkage(c));
 
  const body=el('div','','v251-detail-body');
  const sec=(label,node)=>{
@@ -528,7 +622,17 @@ function openExample(id){
   lab.loadCircuit(c,BUILDER_MSG[id]||'案例电路');
   return true;
  }
- if(typeof lab.openCase==='function')return lab.openCase(id);
+ if(typeof lab.openCase==='function'&&lab.openCase(id))return true;
+ // V2.5.2 新增案例电路：借自检模块的构建器，避免复制电路定义。
+ const probe=root.DigitalV252CaseProbe;
+ if(probe&&typeof probe.build==='function'){
+  const built=probe.build(id);
+  if(built){
+   if(typeof root.show==='function')root.show('v25-lab');
+   lab.loadCircuit(built,'案例电路：'+id);
+   return true;
+  }
+ }
  return false;
 }
 
@@ -662,7 +766,7 @@ root.DigitalV251ContentUI=Object.freeze({
  CASES,PROJECTS,
  openCase,openProject,injectLesson,openExample,
  SEG_TABLE:SEG_TABLE.slice(),
- buildGray4,
+ buildGray4,buildMajority,buildXor4Nand,buildFullAdder,
  currentCase:()=>lastCase
 });
 })(typeof window!=='undefined'?window:globalThis);
