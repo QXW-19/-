@@ -85,6 +85,9 @@ function createLab(){
  let circuit=saved.circuit;
  let undo=[],redo=[],selected=null,pending=null,scale=1,tx=0,ty=0;
  let drag=null,pan=null,timer=null,autoPeriod=900,edgeTimer=null,placing=null;
+ /* V2.5.1：统一手势状态机，避免拖拽/缩放/平移/连线相互抢占指针。 */
+ let gesture=null,pointers=new Map(),pinchStart=null,wireHint=null,snapPort=null,errorTimer=null;
+ let suppressNextCanvasClick=false;
  let waveform=null,section=null,canvas=null,viewport=null,wireLayer=null,nodeLayer=null,previewLine=null;
  let info=null,stats=null,diagBox=null,runButton=null,gridOn=true;
 
@@ -140,18 +143,11 @@ function createLab(){
    const raw=state[w.from]?state[w.from].outputs[w.output]:null;
    const cls='v25-wire '+S.signalClass(raw)+(illegal.has(w)?' v25-wire-illegal':'');
    const path=svg('path',{d,class:cls,'data-key':w.from+':'+w.output+'>'+w.to+':'+w.input});
-   path.addEventListener('click',e=>{
-    e.stopPropagation();
-    apply(c=>M.disconnect(c,w.to,w.input),'已断开 '+w.from+' → '+w.to+' 的导线。');
-   });
    wireLayer.append(path);
-   // 命中区域：加粗透明路径，便于鼠标与触摸点选断线
+   // V2.5.1：端口/导线不再逐个绑定监听器，改为在画布上统一委托（见 onCanvasClick）。
    const hit=svg('path',{d,class:'v25-wire-hit',tabindex:0,role:'button',
+    'data-role':'wire','data-to':w.to,'data-input':String(w.input),
     'aria-label':'断开 '+w.from+' 到 '+w.to+' 的导线'});
-   hit.addEventListener('click',()=>apply(c=>M.disconnect(c,w.to,w.input),'已断开导线。'));
-   hit.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key===' '){e.preventDefault();apply(c=>M.disconnect(c,w.to,w.input),'已断开导线。');}
-   });
    wireLayer.append(hit);
    const v=txt(raw);
    if(v==='X'||illegal.has(w)){
@@ -167,7 +163,7 @@ function createLab(){
   for(const n of circuit.nodes){
    const spec=M.SPECS[n.type],h=nodeHeight(n.type);
    const g=svg('g',{class:'v25-node'+(selected===n.id?' selected':''),
-    transform:'translate('+n.x+','+n.y+')','data-id':n.id});
+    transform:'translate('+n.x+','+n.y+')','data-id':n.id,'data-role':'node'});
    g.append(svg('rect',{x:0,y:0,width:NODE_W,height:h,rx:10,class:'v25-node-box'}));
    g.append(svg('rect',{x:0,y:0,width:NODE_W,height:26,rx:10,class:'v25-node-head'}));
    const title=svg('text',{x:9,y:18,class:'v25-node-title'});
@@ -185,9 +181,8 @@ function createLab(){
    spec.ins.forEach((label,i)=>{
     const p=portPos(n,i,'in');
     const c=svg('circle',{cx:0,cy:p.y-n.y,r:7,class:'v25-port in',tabindex:0,role:'button',
+      'data-role':'port-in','data-node':n.id,'data-index':String(i),'data-pin':label,
       'aria-label':n.id+' 输入 '+label});
-    c.addEventListener('click',e=>{e.stopPropagation();onInput(n.id,i);});
-    c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onInput(n.id,i);}});
     g.append(c);
     const t=svg('text',{x:12,y:p.y-n.y+4,class:'v25-port-label'});t.textContent=label;g.append(t);
    });
@@ -195,9 +190,8 @@ function createLab(){
     const p=portPos(n,i,'out');
     const c=svg('circle',{cx:NODE_W,cy:p.y-n.y,r:7,class:'v25-port out'+
       (pending&&pending.id===n.id&&pending.output===i?' pending':''),tabindex:0,role:'button',
+      'data-role':'port-out','data-node':n.id,'data-index':String(i),'data-pin':label,
       'aria-label':n.id+' 输出 '+label});
-    c.addEventListener('click',e=>{e.stopPropagation();onOutput(n.id,i);});
-    c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onOutput(n.id,i);}});
     g.append(c);
     const t=svg('text',{x:NODE_W-12,y:p.y-n.y+4,class:'v25-port-label out'});t.textContent=label;g.append(t);
    });
@@ -206,20 +200,10 @@ function createLab(){
     t.textContent=n.type==='SWITCH'?'点击切换 0/1':'时钟源';
     g.append(t);
     const hit=svg('rect',{x:4,y:26,width:NODE_W-8,height:h-30,class:'v25-node-hit',tabindex:0,role:'button',
+      'data-role':'toggle','data-node':n.id,
       'aria-label':'切换 '+n.id+' 的输入值'});
-    hit.addEventListener('click',e=>{
-     e.stopPropagation();
-     if(n.type==='SWITCH')apply(c=>M.toggle(c,n.id),'已切换 '+n.id+' 的输入值。');
-     else pulse();
-    });
-    hit.addEventListener('keydown',e=>{
-     if(e.key==='Enter'||e.key===' '){e.preventDefault();
-      if(n.type==='SWITCH')apply(c=>M.toggle(c,n.id),'已切换 '+n.id+' 的输入值。');else pulse();}
-    });
     g.append(hit);
    }
-   g.addEventListener('pointerdown',e=>beginNodeDrag(e,n.id));
-   g.addEventListener('click',e=>{e.stopPropagation();selected=n.id;draw();});
    nodeLayer.append(g);
   }
  }
@@ -248,22 +232,61 @@ function createLab(){
     ' · 上限 '+M.MAX_NODES+'/'+M.MAX_WIRES;
  }
 
- /* ---------- 端口连线 ---------- */
+ /* ---------- V2.5.1 端口连线：事件委托 + 吸附反馈 + 中文预校验 ---------- */
+ function hintMsg(text,bad){
+  if(!wireHint)return;
+  wireHint.textContent=text;
+  wireHint.classList.toggle('v251-hint-error',!!bad);
+ }
+ function clearSnap(){
+  if(snapPort){snapPort.classList.remove('v25-port-snap');snapPort=null;}
+ }
+ function connectionProblem(from,id,input){
+  const byId=new Map(circuit.nodes.map(n=>[n.id,n]));
+  const a=byId.get(from.id),b=byId.get(id);
+  if(!a||!b)return '目标元件不存在，请重新选择。';
+  if(from.id===id)return '不能把元件输出接回自己的输入端；没有寄存器隔离的直接反馈不被允许。';
+  if(M.SPECS[a.type].kind==='sink')return 'LED 是输出型元件，不能作为导线起点。';
+  if(M.SPECS[b.type].kind==='source')return '输入开关/时钟源没有输入端口，不能作为导线终点。';
+  const clkIndex=M.SPECS[b.type].clock;
+  if(clkIndex===input&&a.type!=='CLOCK')
+   return 'CLK 端建议直接连接 CLOCK 时钟源；接普通信号会产生意外上升沿。';
+  return null;
+ }
+ function flashError(){
+  const holder=canvas&&canvas.parentElement;
+  if(!holder)return;
+  holder.classList.add('v251-canvas-error');
+  clearTimeout(errorTimer);
+  errorTimer=setTimeout(()=>holder.classList.remove('v251-canvas-error'),900);
+ }
  function onOutput(id,output){
   pending={id,output};selected=id;
-  announce('已选择 '+id+' 的输出端，请点击目标元件的输入端（或直接点画布取消）。');
+  announce('已选择 '+id+' 的输出端，请拖动或点击目标元件的输入端。');
+  hintMsg('把导线拖到目标输入端口；靠近时端口会高亮吸附。');
   draw();
  }
  function onInput(id,input){
   if(pending){
-   const from=pending;pending=null;
+   const from=pending;pending=null;clearPreview();clearSnap();
+   const problem=connectionProblem(from,id,input);
+   if(problem){
+    announce('接线被拒绝：'+problem,true);
+    hintMsg('✕ '+problem,true);flashError();draw();
+    return;
+   }
    const occupied=circuit.wires.find(w=>w.to===id&&w.input===input);
-   const before=occupied?'（该输入端原有连线会被替换）':'';
-   apply(c=>M.connect(c,from.id,from.output,id,input),
-     '已连接 '+from.id+' → '+id+' '+before);
+   const ok=apply(c=>M.connect(c,from.id,from.output,id,input),
+     '已连接 '+from.id+' → '+id+(occupied?'（已替换原有连线）':'')+'。');
+   if(!ok){hintMsg('接线失败：请查看状态栏的中文原因。',true);flashError();}
+   else hintMsg('✓ 接线完成，可切换输入观察 0/1/X 变化。');
   }else if(circuit.wires.some(w=>w.to===id&&w.input===input)){
    apply(c=>M.disconnect(c,id,input),'已断开 '+id+' 的输入接线。');
-  }else announce('请先点击一个蓝色输出端口，再点击目标橙色输入端口。');
+   hintMsg('已断开该输入端的导线。');
+  }else{
+   announce('请先点击一个蓝色输出端口，再点击目标橙色输入端口。');
+   hintMsg('先选输出端口（蓝），再选输入端口（橙）。',true);
+  }
  }
  function canvasPoint(evt){
   const rect=canvas.getBoundingClientRect();
@@ -281,60 +304,185 @@ function createLab(){
   previewLine.setAttribute('class','v25-preview active');
  }
  function clearPreview(){
-  pending=null;
+  pending=null;clearSnap();
   if(previewLine){previewLine.setAttribute('d','');previewLine.setAttribute('class','v25-preview');}
  }
+ function nearestInput(p){
+  let best=null,dist=28;
+  for(const n of circuit.nodes){
+   M.SPECS[n.type].ins.forEach((pin,i)=>{
+    const q=portPos(n,i,'in'),d=Math.hypot(q.x-p.x,q.y-p.y);
+    if(d<dist){dist=d;best={node:n.id,index:i,pin};}
+   });
+  }
+  return best;
+ }
+ function highlightSnap(p){
+  clearSnap();
+  const near=nearestInput(p);
+  if(!near){hintMsg('把导线拖到目标输入端口（端口会高亮吸附）');return null;}
+  const circle=nodeLayer.querySelector('.v25-port.in[data-node="'+near.node+'"][data-index="'+near.index+'"]');
+  if(circle){circle.classList.add('v25-port-snap');snapPort=circle;}
+  const problem=pending?connectionProblem(pending,near.node,near.index):null;
+  hintMsg(problem?'✕ '+problem:'✓ 吸附到 '+near.node+' 的 '+near.pin+' 输入端',!!problem);
+  return near;
+ }
 
- /* ---------- 拖拽 / 平移 / 缩放 ---------- */
- function beginNodeDrag(evt,id){
-  if(evt.button!==0&&evt.pointerType==='mouse')return;
-  const n=circuit.nodes.find(x=>x.id===id);if(!n)return;
-  const cls=evt.target.classList||{contains:()=>false};
-  // 端口、输入开关与动作区要响应 click；若此处捕获指针会吞掉点击事件。
-  if(['v25-port','v25-node-hit','v25-node-action','v25-node-value'].some(c=>cls.contains(c)))return;
-  evt.stopPropagation();
-  selected=id;
-  drag={id,origX:n.x,origY:n.y,start:canvasPoint(evt),pointer:evt.pointerId};
-  try{canvas.setPointerCapture(evt.pointerId);}catch(_){}
- }
- function onPointerMove(evt){
-  if(drag){
-   const p=toWorld(canvasPoint(evt)),origin=toWorld(drag.start);
-   const n=circuit.nodes.find(x=>x.id===drag.id);if(!n)return;
-   // 只更新图形的临时位置，不修改 circuit；撤销栈因此在落盘前仍保存原始坐标。
-   drag.lastX=clamp(snap(drag.origX+(p.x-origin.x)),0,CANVAS_W-NODE_W-6);
-   drag.lastY=clamp(snap(drag.origY+(p.y-origin.y)),0,CANVAS_H-nodeHeight(n.type)-6);
-   const g=nodeLayer.querySelector('.v25-node[data-id="'+drag.id+'"]');
-   if(g)g.setAttribute('transform','translate('+drag.lastX+','+drag.lastY+')');
-   const state=evaluate();drawWires(state);
-   return;
-  }
-  if(pan){
-   const p=canvasPoint(evt);
-   tx=pan.tx+(p.x-pan.start.x);ty=pan.ty+(p.y-pan.start.y);
-   viewport.setAttribute('transform','translate('+tx+','+ty+') scale('+scale+')');
-   return;
-  }
-  if(pending)updatePreview(evt);
- }
- function onPointerUp(evt){
-  if(drag){
-   const d=drag;drag=null;
-   try{canvas.releasePointerCapture(evt.pointerId);}catch(_){}
-   if(d.lastX!==undefined)apply(c=>M.move(c,d.id,d.lastX,d.lastY),'元件已按网格对齐。');
-   else draw();
-   return;
-  }
-  if(pan){pan=null;return;}
- }
+ /* ---------- V2.5.1 统一手势状态机 ---------- */
  function zoom(factor,evt){
-  const old=scale;
   scale=clamp(scale*factor,0.5,2.2);
   if(evt){
    const p=canvasPoint(evt),w=toWorld(p);
    tx=p.x-w.x*scale;ty=p.y-w.y*scale;
   }
   viewport.setAttribute('transform','translate('+tx+','+ty+') scale('+scale+')');
+ }
+ function applyViewport(){
+  viewport.setAttribute('transform','translate('+tx+','+ty+') scale('+scale+')');
+ }
+ function onPointerDown(evt){
+  if(evt.pointerType==='mouse'&&evt.button!==0)return;
+  // 新的按下动作开始，上一轮「点击抑制」失效，避免误吞下一次端口点击。
+  suppressNextCanvasClick=false;
+  pointers.set(evt.pointerId,{x:evt.clientX,y:evt.clientY});
+  if(pointers.size===2){
+   const pts=[...pointers.values()];
+   pinchStart={dist:Math.max(1,Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)),scale};
+   // 手势冲突：双指缩放优先，取消未完成的连线预览。
+   clearPreview();hintMsg('双指缩放中。');
+   gesture={mode:'pinch'};
+   return;
+  }
+  if(gesture&&gesture.mode!=='idle'&&gesture.mode!=='wire')return;
+  const t=evt.target,role=t.dataset?t.dataset.role:null;
+  const nodeEl=t.closest?t.closest('[data-role="node"]'):null;
+  if(role==='port-out'){
+   onOutput(t.dataset.node,Number(t.dataset.index));
+   // onOutput 会重绘 DOM，随后的 click 可能落到画布上；此时不能清除刚建立的待连接。
+   suppressNextCanvasClick=true;
+   gesture={mode:'wire',pointer:evt.pointerId,start:canvasPoint(evt),moved:false};
+  }else if(role==='port-in'||role==='toggle'||role==='wire'){
+   gesture={mode:'idle'};   // 交给 click 委托处理，不捕获指针
+   return;
+  }else if(nodeEl){
+   const id=nodeEl.dataset.id,n=circuit.nodes.find(x=>x.id===id);
+   if(!n)return;
+   selected=id;
+   gesture={mode:'node',id,origX:n.x,origY:n.y,start:canvasPoint(evt),pointer:evt.pointerId,moved:false};
+  }else if(t===canvas||t.classList.contains('v25-canvas-bg')){
+   gesture={mode:'pan',start:canvasPoint(evt),tx,ty,pointer:evt.pointerId,moved:false};
+  }else{gesture={mode:'idle'};return;}
+  try{canvas.setPointerCapture(evt.pointerId);}catch(_){}
+ }
+ function onPointerMove(evt){
+  if(pointers.has(evt.pointerId))pointers.set(evt.pointerId,{x:evt.clientX,y:evt.clientY});
+  const g=gesture;if(!g)return;
+  if(g.mode==='pinch'&&pinchStart&&pointers.size>=2){
+   const pts=[...pointers.values()];
+   const d=Math.max(1,Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y));
+   scale=clamp(pinchStart.scale*(d/pinchStart.dist),0.5,2.2);
+   applyViewport();return;
+  }
+  const p=toWorld(canvasPoint(evt)),origin=toWorld(g.start||canvasPoint(evt));
+  if(g.mode==='node'){
+   const n=circuit.nodes.find(x=>x.id===g.id);if(!n)return;
+   g.lastX=clamp(snap(g.origX+(p.x-origin.x)),0,CANVAS_W-NODE_W-6);
+   g.lastY=clamp(snap(g.origY+(p.y-origin.y)),0,CANVAS_H-nodeHeight(n.type)-6);
+   g.moved=Math.abs(p.x-origin.x)>4||Math.abs(p.y-origin.y)>4;
+   const el2=nodeLayer.querySelector('.v25-node[data-id="'+g.id+'"]');
+   if(el2)el2.setAttribute('transform','translate('+g.lastX+','+g.lastY+')');
+   drawWires(evaluate());return;
+  }
+  if(g.mode==='pan'){
+   const raw=canvasPoint(evt);
+   tx=g.tx+(raw.x-g.start.x);ty=g.ty+(raw.y-g.start.y);
+   g.moved=true;applyViewport();return;
+  }
+  if(g.mode==='wire'){
+   updatePreview(evt);highlightSnap(p);
+   g.moved=Math.abs(p.x-origin.x)>4||Math.abs(p.y-origin.y)>4;
+  }
+ }
+ function onPointerUp(evt){
+  pointers.delete(evt.pointerId);
+  const g=gesture;gesture=null;
+  try{canvas.releasePointerCapture(evt.pointerId);}catch(_){}
+  if(!g)return;
+  if(g.mode==='pinch'){pinchStart=null;hintMsg('缩放完成。');return;}
+  if(g.mode==='node'){
+   if(g.moved&&g.lastX!==undefined)apply(c=>M.move(c,g.id,g.lastX,g.lastY),'元件已按网格对齐。');
+   else draw();
+   return;
+  }
+  if(g.mode==='wire'){
+   const near=highlightSnap(toWorld(canvasPoint(evt)));
+   if(near&&pending&&near.node!==pending.id)onInput(near.node,near.index);
+   else if(g.moved)hintMsg('未吸附到输入端口，可继续点击目标输入端完成接线。');
+   return;
+  }
+ }
+ /* 画布级 click 委托：端口、开关、导线、节点与空白区只在这里分发。 */
+ function onCanvasClick(evt){
+  if(suppressNextCanvasClick){suppressNextCanvasClick=false;return;}
+  const t=evt.target,role=t.dataset?t.dataset.role:null;
+  if(role==='port-in'){onInput(t.dataset.node,Number(t.dataset.index));return;}
+  if(role==='port-out')return;                    // pointerdown 已发起连线
+  if(role==='toggle'){
+   const n=circuit.nodes.find(x=>x.id===t.dataset.node);if(!n)return;
+   if(n.type==='SWITCH')apply(c=>M.toggle(c,n.id),'已切换 '+n.id+' 的输入值。');
+   else pulse();
+   return;
+  }
+  if(role==='wire'){
+   apply(c=>M.disconnect(c,t.dataset.to,Number(t.dataset.input)),'已断开导线。');
+   return;
+  }
+  const nodeEl=t.closest?t.closest('[data-role="node"]'):null;
+  if(nodeEl){selected=nodeEl.dataset.id;draw();return;}
+  if(t===canvas||t.classList.contains('v25-canvas-bg')){
+   if(placing){const p=toWorld(canvasPoint(evt));addNode(placing,p.x,p.y);placing=null;return;}
+   if(pending){clearPreview();announce('已取消连线。');hintMsg('已取消连线。');return;}
+   selected=null;draw();
+  }
+ }
+ function onCanvasKeydown(evt){
+  if(evt.key!=='Enter'&&evt.key!==' ')return;
+  const t=evt.target,role=t.dataset&&t.dataset.role;
+  if(!role)return;
+  evt.preventDefault();
+  if(role==='port-in')onInput(t.dataset.node,Number(t.dataset.index));
+  else if(role==='port-out')onOutput(t.dataset.node,Number(t.dataset.index));
+  else if(role==='toggle'){
+   const n=circuit.nodes.find(x=>x.id===t.dataset.node);
+   if(n&&n.type==='SWITCH')apply(c=>M.toggle(c,n.id),'已切换 '+n.id+' 的输入值。');else pulse();
+  }else if(role==='wire')apply(c=>M.disconnect(c,t.dataset.to,Number(t.dataset.input)),'已断开导线。');
+ }
+ /* ---------- 移动端：从元件库直接触摸拖到画布 ---------- */
+ function beginTouchDrop(evt,type){
+  if(evt.pointerType==='mouse')return;        // 鼠标保留 HTML5 拖放
+  if(gesture&&gesture.mode!=='idle')return;     // 手势冲突：不打断进行中的操作
+  evt.preventDefault();
+  const ghost=el('div','+ '+M.SPECS[type].label,'v251-ghost');
+  document.body.append(ghost);
+  gesture={mode:'touchdrop',type,ghost,pointer:evt.pointerId,inside:false};
+  try{evt.target.setPointerCapture(evt.pointerId);}catch(_){}
+  moveGhost(evt);
+ }
+ function moveGhost(evt){
+  const g=gesture;if(!g||g.mode!=='touchdrop')return;
+  g.ghost.style.left=(evt.clientX+14)+'px';g.ghost.style.top=(evt.clientY+14)+'px';
+  const r=canvas.getBoundingClientRect();
+  g.inside=evt.clientX>=r.left&&evt.clientX<=r.right&&evt.clientY>=r.top&&evt.clientY<=r.bottom;
+  g.ghost.classList.toggle('over',g.inside);
+ }
+ function finishTouchDrop(evt){
+  const g=gesture;if(!g||g.mode!=='touchdrop')return;
+  gesture=null;
+  const r=canvas.getBoundingClientRect();
+  const inside=evt.clientX>=r.left&&evt.clientX<=r.right&&evt.clientY>=r.top&&evt.clientY<=r.bottom;
+  if(inside){const p=toWorld(canvasPoint(evt));addNode(g.type,p.x,p.y);}
+  else announce('拖放已取消：请松手在画布区域内。');
+  g.ghost.remove();
  }
 
  /* ---------- 元件操作 ---------- */
@@ -361,11 +509,14 @@ function createLab(){
  function doUndo(){
   if(!undo.length){announce('没有可撤销的操作。');return;}
   redo.push(copy(circuit));circuit=undo.pop();selected=null;clearPreview();
+  M.validate(circuit);                     // V2.5.1：撤销后必须仍是合法电路
   save();draw();if(waveform)waveform.record(circuit,false);announce('已撤销。');
  }
  function doRedo(){
   if(!redo.length){announce('没有可重做的操作。');return;}
   undo.push(copy(circuit));circuit=redo.pop();selected=null;clearPreview();
+  M.validate(circuit);
+  save();draw();if(waveform)waveform.record(circuit,false);announce('已重做。');
   save();draw();if(waveform)waveform.record(circuit,false);announce('已重做。');
  }
 
@@ -421,6 +572,18 @@ function createLab(){
   announce('已导出 V1.6 兼容 JSON（旧版实验室可直接导入）。');
  }
 
+ /* V2.5.1：撤销/重做一致性自检，供自动化回归直接查询。 */
+ function historyStatus(){
+  let valid=true;
+  try{
+   M.validate(circuit);
+   undo.forEach(c=>M.validate(c));
+   redo.forEach(c=>M.validate(c));
+  }catch(_){valid=false;}
+  return {undo:undo.length,redo:redo.length,valid,
+   nodes:circuit.nodes.length,wires:circuit.wires.length};
+ }
+
  /* ---------- 构建界面 ---------- */
  function buildUI(main,nav){
   const ch=el('div',undefined,'chap');
@@ -464,7 +627,7 @@ function createLab(){
 
   const layout=el('div',undefined,'v25-layout');
   const palette=el('aside',undefined,'v25-palette');
-  palette.append(el('h3','元件库'),el('p','鼠标拖入画布；触屏先点元件再点画布。','v25-hint'));
+  palette.append(el('h3','元件库'),el('p','鼠标拖入画布；触屏可直接把元件拖到画布，也可先点元件再点画布。','v25-hint'));
   CATEGORIES.forEach(cat=>{
    const group=el('div',undefined,'v25-cat');group.append(el('h4',cat.name));
    cat.types.forEach(type=>{
@@ -473,6 +636,8 @@ function createLab(){
     b.addEventListener('dragstart',e=>{
      e.dataTransfer.setData('text/plain',type);e.dataTransfer.effectAllowed='copy';
     });
+    // V2.5.1：触屏从元件库直接拖出「幽灵元件」，松手落在画布即放置。
+    b.addEventListener('pointerdown',e=>beginTouchDrop(e,type));
     b.classList.add('v25-palette-item');
     group.append(b);
    });
@@ -495,7 +660,9 @@ function createLab(){
   viewport=svg('g',{class:'v25-viewport'});canvas.append(viewport);holder.append(canvas);work.append(holder);
   const foot=el('div',undefined,'v25-status');
   info=el('span','已就绪。');info.setAttribute('role','status');
-  stats=el('span');foot.append(info,stats);work.append(foot);
+  stats=el('span');foot.append(info,stats);
+  wireHint=el('span','从元件库拖入元件，或点蓝色输出端再点橙色输入端接线。','v251-wire-hint');
+  foot.append(wireHint);work.append(foot);
   layout.append(work);section.append(layout);
 
   diagBox=el('div',undefined,'v25-diagnostics');section.append(diagBox);
@@ -507,7 +674,7 @@ function createLab(){
   section.append(limits);
   main.append(section);
 
-  /* 画布事件：拖放、点选放置、平移、缩放、连线预览 */
+  /* V2.5.1：画布只注册这一组监听，端口/开关/导线/节点全部通过 data-role 委托。 */
   canvas.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';});
   canvas.addEventListener('drop',e=>{
    e.preventDefault();
@@ -515,25 +682,28 @@ function createLab(){
    if(!M.SPECS[type])return;
    const p=toWorld(canvasPoint(e));addNode(type,p.x,p.y);
   });
-  canvas.addEventListener('click',e=>{
-   if(e.target===canvas||e.target.classList.contains('v25-canvas-bg')){
-    if(placing){const p=toWorld(canvasPoint(e));addNode(placing,p.x,p.y);placing=null;return;}
-    if(pending){clearPreview();announce('已取消连线。');return;}
-    selected=null;draw();
-   }
-  });
-  canvas.addEventListener('pointerdown',e=>{
-   if(e.target===canvas||e.target.classList.contains('v25-canvas-bg')){
-    if(e.pointerType==='mouse'&&e.button!==0)return;
-    pan={start:canvasPoint(e),tx,ty,pointer:e.pointerId};
-    try{canvas.setPointerCapture(e.pointerId);}catch(_){}
-   }
-  });
+  canvas.addEventListener('click',onCanvasClick);
+  canvas.addEventListener('keydown',onCanvasKeydown);
+  canvas.addEventListener('pointerdown',onPointerDown);
   canvas.addEventListener('pointermove',onPointerMove);
   canvas.addEventListener('pointerup',onPointerUp);
   canvas.addEventListener('pointercancel',onPointerUp);
   canvas.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.1:1/1.1,e);},{passive:false});
-  canvas.addEventListener('pointermove',e=>{if(pending)updatePreview(e);});
+  // 触摸拖放期间指针被元件按钮捕获，因此在 document 上收尾（只注册一次）。
+  const onDocMove=e=>{if(gesture&&gesture.mode==='touchdrop')moveGhost(e);};
+  const onDocUp=e=>{if(gesture&&gesture.mode==='touchdrop')finishTouchDrop(e);};
+  const onDocCancel=e=>{
+   if(gesture&&gesture.mode==='touchdrop'){gesture.ghost.remove();gesture=null;}
+  };
+  document.addEventListener('pointermove',onDocMove);
+  document.addEventListener('pointerup',onDocUp);
+  document.addEventListener('pointercancel',onDocCancel);
+  root.addEventListener('pagehide',()=>{
+   document.removeEventListener('pointermove',onDocMove);
+   document.removeEventListener('pointerup',onDocUp);
+   document.removeEventListener('pointercancel',onDocCancel);
+   clearTimeout(errorTimer);
+  },{once:true});
 
   document.addEventListener('keydown',e=>{
    if(!section.classList.contains('active'))return;
@@ -576,6 +746,9 @@ function createLab(){
   getCircuit:()=>circuit,
   evaluate,
   diagnose:()=>S.diagnose(circuit,evaluate()),
+  historyStatus,
+  gestureState:()=>gesture?gesture.mode:'idle',
+  viewState:()=>({scale,tx,ty}),
   pulse,resetCircuit,loadCircuit,exportData,
   /* 导入/导出使用 V1.6 原始 JSON 结构，旧版实验室可直接读取，便于测试与迁移。 */
   importJSON(obj){const r=normalize(obj);loadCircuit(r.circuit,'已导入电路。');return r;},

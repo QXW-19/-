@@ -153,3 +153,17 @@
 .v251-scene-info li em{color:var(--v25-muted);font-style:normal}
 .v251-hint,.v251-scene-stat{font-size:12px;color:var(--v25-muted);margin:4px 0 0}
 .v251-scene-stat{font-family:var(--v241-font-mono,monospace);overflow-wrap:anywhere}
+
+/* ----- V2.5.1 电路编辑器：触摸拖放、端口吸附与错误反馈 ----- */
+.v251-ghost{position:fixed;z-index:9999;pointer-events:none;padding:7px 12px;
+  border:1px dashed var(--v25-clock);border-radius:999px;background:var(--v25-surface);
+  color:var(--v25-text);font-size:12px;font-weight:700;box-shadow:var(--v241-shadow,0 4px 12px rgba(0,0,0,.16));
+  opacity:.85;transition:opacity 120ms,border-color 120ms}
+.v251-ghost.over{opacity:1;border-style:solid;border-color:var(--v25-high);background:var(--v25-surface-2)}
+.v251-wire-hint{flex-basis:100%;font-size:12px;color:var(--v25-clock);
+  padding:4px 8px;border-radius:6px;background:var(--v25-surface-2)}
+.v251-wire-hint.v251-hint-error{color:var(--v25-error);font-weight:700}
+.v25-port.v25-port-snap{stroke:var(--v25-high);stroke-width:4;fill:var(--v25-high);
+  filter:drop-shadow(0 0 6px var(--v25-high))}
+.v251-canvas-error{box-shadow:inset 0 0 0 2px var(--v25-error)}
+.v25-palette-item{touch-action:none}
