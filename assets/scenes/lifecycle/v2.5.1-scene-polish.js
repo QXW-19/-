@@ -321,9 +321,20 @@ function init(){
   applyAll();
   if(polished.size>=5||bootTries>40)clearInterval(bootTimer);
  },400);
- root.addEventListener('pagehide',()=>{
+ root.addEventListener('pagehide',e=>{
   if(bootTimer)clearInterval(bootTimer);
   if(transitionRaf)cancelAnimationFrame(transitionRaf);
+  // 真正关闭页面时释放 5 个 WebGL 上下文：只停动画不释放，浏览器关闭
+  // 上下文会等待 GPU 队列清空，在并行测试里表现为收尾超时。
+  // bfcache 恢复（persisted=true）时不能释放，否则返回页面会看到空白场景。
+  if(e&&e.persisted)return;
+  for(const id of S.ids){
+   try{suspend(id);}catch(_){}
+   const api=S.apiOf(id);
+   if(api&&api.renderer){
+    try{api.renderer.dispose();api.renderer.forceContextLoss();}catch(_){}
+   }
+  }
  },{once:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});

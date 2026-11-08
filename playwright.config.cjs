@@ -4,7 +4,9 @@ module.exports=defineConfig({
   testDir:'./tests/browser',
   // 输出目录可通过环境变量覆盖：本地反复回归时指向独立目录，
   // 避免历史报告堆积导致清理失败；CI 使用默认 test-results。
-  outputDir:process.env.PW_OUTPUT_DIR||'test-results',
+  // 固定放到 test-results/current：Playwright 每轮只清理这个子目录，
+  // 不会因为历史上千个截图/追踪文件触发批量删除保护。
+  outputDir:process.env.PW_OUTPUT_DIR||'test-results/current',
   timeout:45000,
   expect:{timeout:12000},
   fullyParallel:false,
@@ -19,10 +21,10 @@ module.exports=defineConfig({
     baseURL:'http://127.0.0.1:8001',
     browserName:'chromium',
     headless:true,
-    // 只保留「动作/控制台/网络」轨迹，不录制每个动作的 DOM 快照。
-    // 全量快照会让每个用例的收尾阶段写入大量数据，是此前后台收尾超时的主因；
-    // 关闭快照后仍能在失败时定位到具体操作与报错，需要逐帧复现时可加 --trace=on。
-    trace:{mode:'retain-on-failure',snapshots:false,sources:false},
+    // 只在「首次重试」时录制轨迹：本地不重试即零轨迹文件，CI 重试时自动带上，
+    // 既能定位不稳定用例，又不会让每轮跑完留下上千个 trace 文件触发批量删除保护。
+    // 需要逐动作复现时显式运行：npx playwright test --trace=on
+    trace:'on-first-retry',
     screenshot:'only-on-failure'
   },
   webServer:{
