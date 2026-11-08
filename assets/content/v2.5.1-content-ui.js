@@ -488,11 +488,33 @@ function buildXor4Nand(){
  M.validate(c);
  return c;
 }
-const BUILDERS={gray4:buildGray4,majority:buildMajority,xor4nand:buildXor4Nand};
+/* 案例 4-1：一位全加器 S=A⊕B⊕Cin，Cout=AB+Cin(A⊕B)。 */
+function buildFullAdder(){
+ const M=root.DigitalMixedCircuit;
+ if(!M)return null;
+ let c=M.empty();
+ const put=(type,x,y)=>{c=M.add(c,type,x,y);return c.nodes[c.nodes.length-1].id;};
+ const wire=(a,o,b,i)=>{c=M.connect(c,a,o,b,i);};
+ const a=put('SWITCH',40,80),b=put('SWITCH',40,260),cin=put('SWITCH',40,440);
+ const x1=put('XOR',300,110),s=put('XOR',560,150);
+ const c1=put('AND',300,340),c2=put('AND',560,380);
+ const or=put('OR',800,360);
+ const ledS=put('LED',980,150),ledC=put('LED',980,360);
+ wire(a,0,x1,0);wire(b,0,x1,1);
+ wire(x1,0,s,0);wire(cin,0,s,1);
+ wire(a,0,c1,0);wire(b,0,c1,1);
+ wire(x1,0,c2,0);wire(cin,0,c2,1);
+ wire(c1,0,or,0);wire(c2,0,or,1);
+ wire(s,0,ledS,0);wire(or,0,ledC,0);
+ M.validate(c);
+ return c;
+}
+const BUILDERS={gray4:buildGray4,majority:buildMajority,xor4nand:buildXor4Nand,fulladder:buildFullAdder};
 const BUILDER_MSG={
  gray4:'案例 1-2：4 位二进制 → 格雷码转换器',
  majority:'案例 2-1：三人表决器 F = AB + AC + BC',
- xor4nand:'案例 2-2：4 个与非门实现异或'
+ xor4nand:'案例 2-2：4 个与非门实现异或',
+ fulladder:'案例 4-1：一位全加器 S = A⊕B⊕Cin，Cout = AB + Cin(A⊕B)'
 };
 function openExample(id){
  const lab=root.DigitalV25Lab;

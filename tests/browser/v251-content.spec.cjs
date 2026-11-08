@@ -181,3 +181,21 @@ test('第三章深读齐全，三态总线案例可跳到章节互动',async({pa
   await expect(page.locator('#n3')).toHaveClass(/active/);
   expect(errors).toEqual([]);
 });
+
+test('第四章全加器案例能载入 5 个门并保留两位输出',async({page})=>{
+  await home(page);
+  for(const id of ['l4-1','l4-2','l4-3','l4-4']){
+    await lesson(page,id);
+    await expect(page.locator('#v18-school .v251-deep'),id).toHaveCount(4,{timeout:8000});
+  }
+  await page.evaluate(()=>window.DigitalV251ContentUI.openCase('case-4-1'));
+  await expect(page.locator('#v251-cases .v251-part')).toHaveCount(13);
+  await page.locator('#v251-cases button',{hasText:'打开实验'}).click();
+  await expect(page.locator('#v25-lab')).toHaveClass(/active/);
+  const c=await page.evaluate(()=>window.DigitalV25Lab.getCircuit());
+  expect(c.nodes.filter(n=>n.type==='XOR').length).toBe(2);
+  expect(c.nodes.filter(n=>n.type==='AND').length).toBe(2);
+  expect(c.nodes.filter(n=>n.type==='OR').length).toBe(1);
+  expect(c.nodes.filter(n=>n.type==='LED').length).toBe(2);
+  expect(c.wires.length).toBe(12);
+});
