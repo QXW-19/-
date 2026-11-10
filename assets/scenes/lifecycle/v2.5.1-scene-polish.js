@@ -321,9 +321,19 @@ function init(){
   applyAll();
   if(polished.size>=5||bootTries>40)clearInterval(bootTimer);
  },400);
- root.addEventListener('pagehide',()=>{
+ root.addEventListener('pagehide',e=>{
   if(bootTimer)clearInterval(bootTimer);
   if(transitionRaf)cancelAnimationFrame(transitionRaf);
+  // 真正关闭页面时释放五个 WebGL 上下文，避免浏览器等待 GPU 队列清空导致
+  // 并行测试的上下文收尾超时；bfcache 恢复(persisted)时不释放，防止画面空白。
+  if(e&&e.persisted)return;
+  for(const id of S.ids){
+   try{suspend(id);}catch(_){}
+   const api=S.apiOf(id);
+   if(api&&api.renderer){
+    try{api.renderer.dispose();api.renderer.forceContextLoss();}catch(_){}
+   }
+  }
  },{once:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});

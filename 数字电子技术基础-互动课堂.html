@@ -3483,6 +3483,9 @@
 
       var THREE = null;
       var CDN = [
+        // V2.5.1 稳定性补丁：本地优先加载，避免多 worker 并发首屏时外网请求竞争
+        // 拖住 load 事件；本地文件不可用或解析失败时仍依次回退到下列 CDN。
+        "/assets/vendor/three.module.js",
         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
         "https://unpkg.com/three@0.160.0/build/three.module.js",
         "https://esm.sh/three@0.160.0",
@@ -3979,6 +3982,8 @@
         return window.__K3.p;
       }
       var urls = [
+        // 同上：五个 3D 场景共用的加载器，本地副本优先，CDN 仅作兜底。
+        "/assets/vendor/three.module.js",
         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
         "https://unpkg.com/three@0.160.0/build/three.module.js",
         "https://esm.sh/three@0.160.0",
