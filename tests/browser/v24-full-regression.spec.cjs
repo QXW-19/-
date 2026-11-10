@@ -129,23 +129,27 @@ test('3D 二级：WebGL 能力探测可区分 GPU 与网络限制',async({page})
   console.log('[3D-WebGL] 本机 WebGL 可用：'+probe.ok+'；页面预置降级文案：'+probe.reason.replace(/<[^>]+>/g,'').slice(0,60));
 });
 
-test('3D 三级：真实渲染（需 WebGL 与 Three.js CDN 同时可用）',async({page})=>{
+test('3D 三级：真实渲染（需 WebGL 且 Three.js 本地副本或 CDN 可用）',async({page})=>{
   await home(page);
   const webgl=await page.evaluate(()=>window.__K3.hasWebGL());
-  // CDN 是否可用单独探测，避免把「入口可打开」误报为「画面已渲染」。
-  let cdn=false;
+  // Three.js 是否可加载单独探测，避免把「入口可打开」误报为「画面已渲染」。
+  // 本地副本优先，只有本地与 CDN 都不可用时才跳过真实渲染验收。
+  let threeAvailable=false;
   try{
-    cdn=await page.evaluate(async()=>{
-      const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),6000);
-      try{
-        const r=await fetch('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
-          {method:'GET',mode:'cors',signal:ctrl.signal});
-        return r.ok;
-      }finally{clearTimeout(timer);}
+    threeAvailable=await page.evaluate(async()=>{
+      const probe=async(url)=>{
+        const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),6000);
+        try{
+          const r=await fetch(url,{method:'GET',mode:'cors',signal:ctrl.signal});
+          return r.ok;
+        }catch(_){return false;}finally{clearTimeout(timer);}
+      };
+      if(await probe('/assets/vendor/three.module.js'))return true;
+      return probe('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
     });
-  }catch(_){cdn=false;}
+  }catch(_){threeAvailable=false;}
   test.skip(!webgl,'本机 Chromium 未启用 WebGL 硬件加速，无法进行真实渲染验收');
-  test.skip(!cdn,'Three.js CDN 在当前网络不可达，无法进行真实渲染验收');
+  test.skip(!threeAvailable,'Three.js 本地副本与 CDN 均不可达，无法进行真实渲染验收');
   await page.evaluate(()=>window.show('w1'));
   await page.waitForTimeout(2500);
   // w1 同时保留原生 Canvas 降级版（#cityCanvas，默认隐藏）和 Three.js 版（#city3d 内 canvas）。
